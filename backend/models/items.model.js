@@ -48,6 +48,7 @@ module.exports = (sequelize) => {
       status: {
         type: DataTypes.ENUM("lost", "found"),
         allowNull: false,
+        defaultValue: "lost",
       },
       holding_state: {
         type: DataTypes.STRING(32),
