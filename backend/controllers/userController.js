@@ -33,6 +33,25 @@ exports.auth = async (req, res) => {
   );
 };
 
+exports.authToken = async (req, res) => {
+  const user = await UserCrud.findOrCreate(req.authInfo.identifier);
+  if (!user) {
+    return res.status(500).json({
+      error: "creating user failed",
+    });
+  }
+
+  if (req.query.notRedirect !== undefined) {
+    return res.status(200).json({
+      token: await getToken(user.id),
+    });
+  }
+
+  return res.status(200).json({
+    token: await getToken(user[0]["user_id"]),
+  });
+};
+
 exports.getUserInfo = async (req, res) => {
   try {
     const user = await UserCrud.findUserById(req.id);
