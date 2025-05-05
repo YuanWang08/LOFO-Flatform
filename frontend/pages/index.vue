@@ -3,7 +3,7 @@
     <section class="py-12 md:py-20">
       <div class="max-w-4xl mx-auto text-center">
         <h1 class="text-4xl md:text-6xl font-bold mb-6">
-          LOFO - 遺失物與食物資訊分享平台
+          LOFO 遺失物與食物資訊分享平台
         </h1>
         <p class="text-xl md:text-2xl mb-8">
           透過地圖標記、智能分析與社群互動，讓尋物與分享食物變得更簡單
