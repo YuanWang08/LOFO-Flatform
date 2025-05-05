@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div id="map" class="h-screen w-full"></div>
+  <div class="map-container">
+    <div id="map" class="h-map w-full"></div>
     <button
       id="submitBtn"
       class="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white py-2 px-6 rounded-lg shadow-lg hover:bg-green-700 z-10"
@@ -84,10 +84,18 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.map-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 4rem); /* 4rem 是導航欄的高度 */
+  margin-top: 0;
+}
+
 /* 確保地圖容器有高度 */
 #map {
-  height: 80vh;
+  height: 100%;
   width: 100%;
+  z-index: 1; /* 確保地圖的z-index低於導航欄 */
 }
 
 #submitBtn {

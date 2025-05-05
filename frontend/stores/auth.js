@@ -9,7 +9,33 @@ export const useAuthStore = defineStore("auth", {
     checkAuth() {
       const authCookie = useCookie("auth_token");
       this.isAuthenticated = !!authCookie.value;
+      if (this.isAuthenticated && !this.user) {
+        this.fetchUserInfo();
+      }
       return this.isAuthenticated;
+    },
+
+    async fetchUserInfo() {
+      try {
+        const config = useRuntimeConfig();
+        const authCookie = useCookie("auth_token");
+        if (!authCookie.value) return;
+
+        const { data } = await useFetch(
+          `${config.public.BACKEND_BASE_URL}/user/info`,
+          {
+            headers: {
+              Authorization: `Bearer ${authCookie.value}`,
+            },
+          }
+        );
+
+        if (data.value) {
+          this.user = data.value;
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
     },
 
     logout() {
