@@ -29,8 +29,7 @@ module.exports = (sequelize) => {
       avatar_url: {
         type: DataTypes.STRING(256),
         allowNull: true,
-        defaultValue:
-          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-978409_1280.png",
+        defaultValue: "https://cdn2.ettoday.net/images/5268/5268947.jpg",
       },
       level: {
         type: DataTypes.INTEGER,
