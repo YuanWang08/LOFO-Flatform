@@ -42,7 +42,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       keywords: {
-        type: DataTypes.ARRAY(DataTypes.TEXT), // 使用 ARRAY 和 TEXT
+        type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
       },
       status: {
@@ -75,19 +75,11 @@ module.exports = (sequelize) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      created_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
-      timestamps: false,
+      timestamps: true, // 啟用時間戳記
+      paranoid: true, // 啟用軟刪除
+      tableName: "items",
     }
   );
 

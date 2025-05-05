@@ -60,18 +60,10 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      created_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
-      updated_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
+      timestamps: true, // 啟用時間戳記
+      paranoid: true, // 啟用軟刪除
       tableName: "item_claims",
     }
   );
