@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1>This is map page.</h1>
     <div id="map" class="h-screen w-full"></div>
     <button
       id="submitBtn"
