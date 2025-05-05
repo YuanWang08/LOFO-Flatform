@@ -57,6 +57,10 @@ exports.getUserInfo = async (req, res) => {
     const user = await UserCrud.findUserById(req.id);
 
     delete user.dataValues.user_id;
+    delete user.dataValues.password_hash;
+    delete user.dataValues.createdAt;
+    delete user.dataValues.updatedAt;
+    delete user.dataValues.deletedAt;
     return res.status(200).json(user);
   } catch (error) {
     console.error("Error in getUserInfo:", error);
