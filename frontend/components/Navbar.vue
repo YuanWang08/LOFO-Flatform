@@ -30,19 +30,27 @@
             <span>食物分享</span>
           </NuxtLink>
           <NuxtLink
-            to="/profile"
-            class="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 transition-colors"
-          >
-            <User size="18" />
-            <span>個人資料</span>
-          </NuxtLink>
-          <NuxtLink
             to="/notifications"
             class="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 transition-colors"
           >
             <Bell size="18" />
             <span>通知</span>
           </NuxtLink>
+          <NuxtLink
+            to="/message"
+            class="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 transition-colors"
+          >
+            <MessageCircle size="18" />
+            <span>訊息</span>
+          </NuxtLink>
+          <NuxtLink
+            to="/profile"
+            class="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 transition-colors"
+          >
+            <User size="18" />
+            <span>個人資料</span>
+          </NuxtLink>
+
           <NuxtLink
             v-if="!isAuthenticated"
             to="/login"
@@ -98,14 +106,6 @@
           <span>食物分享</span>
         </NuxtLink>
         <NuxtLink
-          to="/profile"
-          class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-          @click="isMenuOpen = false"
-        >
-          <User size="18" />
-          <span>個人資料</span>
-        </NuxtLink>
-        <NuxtLink
           to="/notifications"
           class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
           @click="isMenuOpen = false"
@@ -113,6 +113,23 @@
           <Bell size="18" />
           <span>通知</span>
         </NuxtLink>
+        <NuxtLink
+          to="/message"
+          class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          @click="isMenuOpen = false"
+        >
+          <MessageCircle size="18" />
+          <span>訊息</span>
+        </NuxtLink>
+        <NuxtLink
+          to="/profile"
+          class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          @click="isMenuOpen = false"
+        >
+          <User size="18" />
+          <span>個人資料</span>
+        </NuxtLink>
+
         <NuxtLink
           v-if="!isAuthenticated"
           to="/login"
@@ -160,7 +177,16 @@
 
 <script setup>
 import { ref } from "vue";
-import { Menu, X, Map, Package, Utensils, User, Bell } from "lucide-vue-next"; // Importing icons from lucide-vue-next
+import {
+  Menu,
+  X,
+  Map,
+  Package,
+  Utensils,
+  User,
+  Bell,
+  MessageCircle,
+} from "lucide-vue-next"; // Importing icons from lucide-vue-next
 import { useAuthStore } from "~/stores/auth";
 
 const router = useRouter();
