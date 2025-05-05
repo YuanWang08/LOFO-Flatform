@@ -12,66 +12,92 @@
 
 <script setup>
 import { onMounted, onUnmounted } from "vue";
-import "leaflet/dist/leaflet.css";
+import { useHead } from "#imports";
+
+// 使用 useHead 動態添加 Leaflet CSS 和 JS
+useHead({
+  link: [
+    {
+      rel: "stylesheet",
+      href: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+      integrity: "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=",
+      crossorigin: "",
+    },
+  ],
+  script: [
+    {
+      src: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+      integrity: "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=",
+      crossorigin: "",
+    },
+  ],
+});
 
 let map;
 let marker;
 
-onMounted(async () => {
+onMounted(() => {
   // 確保在客戶端環境下執行
   if (process.client) {
-    // 動態引入 Leaflet (避免 SSR 問題)
-    const L = await import("leaflet");
+    // 使用全局的 L 而不是動態引入
+    setTimeout(() => {
+      // 確保 Leaflet 已載入
+      if (window.L) {
+        const L = window.L;
 
-    // 初始化地圖
-    map = L.map("map", {
-      maxBounds: [
-        [24.963888388433617, 121.18391990661623], // 西南角
-        [24.9721131183022324, 121.19825363159181], // 東北角
-      ],
-      maxBoundsViscosity: 1.0,
-      minZoom: 16,
-      zoomSnap: 0.1,
-    }).setView([24.9678697, 121.1928922], 16.2);
+        // 初始化地圖
+        map = L.map("map", {
+          maxBounds: [
+            [24.963888388433617, 121.18391990661623], // 西南角
+            [24.9721131183022324, 121.19825363159181], // 東北角
+          ],
+          maxBoundsViscosity: 1.0,
+          minZoom: 16,
+          zoomSnap: 0.1,
+        }).setView([24.9678697, 121.1928922], 16.2);
 
-    // 加入圖層
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap 貢獻者",
-    }).addTo(map);
+        // 加入圖層
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap 貢獻者",
+        }).addTo(map);
 
-    // 建立可拖曳的浮標
-    marker = L.marker([24.9678697, 121.1928922], {
-      draggable: true,
-    }).addTo(map);
+        // 建立可拖曳的浮標
+        marker = L.marker([24.9678697, 121.1928922], {
+          draggable: true,
+        }).addTo(map);
 
-    // 紅色浮標
-    const redIcon = L.icon({
-      iconUrl:
-        "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-      shadowUrl:
-        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
-    });
+        // 紅色浮標
+        const redIcon = L.icon({
+          iconUrl:
+            "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+          shadowUrl:
+            "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41],
+        });
 
-    const fieldMarker = L.marker([24.968267159666738, 121.18993492529135], {
-      icon: redIcon,
-    }).addTo(map);
+        const fieldMarker = L.marker([24.968267159666738, 121.18993492529135], {
+          icon: redIcon,
+        }).addTo(map);
 
-    fieldMarker.bindPopup(`
-      <b>大操場</b><br>
-      <img src="https://img.ltn.com.tw/Upload/news/600/2022/08/10/4020522_1_1.jpg" 
-      alt="大操場" width="200" style="margin-top: 5px; border-radius: 8px;" />
-    `);
+        fieldMarker.bindPopup(`
+          <b>大操場</b><br>
+          <img src="https://img.ltn.com.tw/Upload/news/600/2022/08/10/4020522_1_1.jpg" 
+          alt="大操場" width="200" style="margin-top: 5px; border-radius: 8px;" />
+        `);
 
-    // 提交按鈕點擊事件
-    document.getElementById("submitBtn").addEventListener("click", () => {
-      const position = marker.getLatLng();
-      alert(`浮標位置：\n緯度：${position.lat}\n經度：${position.lng}`);
-      console.log(`浮標位置：\n緯度：${position.lat}\n經度：${position.lng}`);
-    });
+        // 提交按鈕點擊事件
+        document.getElementById("submitBtn").addEventListener("click", () => {
+          const position = marker.getLatLng();
+          alert(`浮標位置：\n緯度：${position.lat}\n經度：${position.lng}`);
+          console.log(
+            `浮標位置：\n緯度：${position.lat}\n經度：${position.lng}`
+          );
+        });
+      }
+    }, 500); // 給一點時間讓 Leaflet 腳本載入
   }
 });
 
