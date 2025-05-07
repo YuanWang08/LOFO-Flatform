@@ -27,7 +27,7 @@ app.use(cookieParser());
 app.use(express.static("public"));
 
 // 設置上傳文件的靜態訪問路徑
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
