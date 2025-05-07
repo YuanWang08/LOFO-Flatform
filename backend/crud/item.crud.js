@@ -55,7 +55,7 @@ exports.getAllItems = async (query = {}) => {
           attributes: ["user_id", "nickname", "avatar_url"],
         },
       ],
-      order: [["created_at", "DESC"]],
+      order: [["createdAt", "DESC"]],
       limit,
       offset,
     });
