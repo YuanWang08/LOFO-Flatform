@@ -1,4 +1,5 @@
 const ItemCrud = require("../crud/item.crud");
+const path = require("path");
 
 // 創建新的物品
 exports.createItem = async (req, res) => {
@@ -11,6 +12,41 @@ exports.createItem = async (req, res) => {
       ...req.body,
       created_by: userId,
     };
+
+    // 特別處理 keywords 欄位，確保它是陣列格式
+    if (req.body.keywords) {
+      // 如果是字串格式的 JSON 陣列
+      if (typeof req.body.keywords === "string") {
+        try {
+          // 嘗試解析 JSON 字串
+          if (req.body.keywords.trim().startsWith("[")) {
+            payload.keywords = JSON.parse(req.body.keywords);
+          } else {
+            // 如果不是 JSON 格式，當作單一關鍵字處理
+            payload.keywords = [req.body.keywords];
+          }
+        } catch (e) {
+          // JSON 解析失敗，將整個字串視為單一關鍵字
+          payload.keywords = [req.body.keywords];
+        }
+      }
+      // keywords 已經是陣列格式
+      else if (Array.isArray(req.body.keywords)) {
+        payload.keywords = req.body.keywords;
+      }
+      // 其他情況，轉為陣列
+      else {
+        payload.keywords = [req.body.keywords].filter(Boolean);
+      }
+    } else {
+      // 如果沒有提供 keywords，設為空陣列
+      payload.keywords = [];
+    }
+
+    // 確保 keywords 是陣列類型
+    if (!Array.isArray(payload.keywords)) {
+      payload.keywords = [];
+    }
 
     // 檢查必要的欄位
     const requiredFields = [
@@ -31,6 +67,13 @@ exports.createItem = async (req, res) => {
       }
     }
 
+    // 處理上傳的圖片
+    if (req.file) {
+      // 儲存相對路徑，方便前端訪問
+      const relativePath = `/uploads/item/${path.basename(req.file.path)}`;
+      payload.image_url = relativePath;
+    }
+
     // 創建物品
     const item = await ItemCrud.createItem(payload);
 
@@ -44,6 +87,36 @@ exports.createItem = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "伺服器錯誤，無法創建物品",
+      error: error.message,
+    });
+  }
+};
+
+// 上傳物品圖片
+exports.uploadItemImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "沒有上傳任何圖片",
+      });
+    }
+
+    // 儲存相對路徑，方便前端訪問
+    const relativePath = `/uploads/item/${path.basename(req.file.path)}`;
+
+    return res.status(200).json({
+      success: true,
+      message: "圖片上傳成功",
+      data: {
+        image_url: relativePath,
+      },
+    });
+  } catch (error) {
+    console.error("圖片上傳失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法上傳圖片",
       error: error.message,
     });
   }
