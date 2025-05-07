@@ -6,3 +6,5 @@ About database, run "docker-compose up -d", or you can change the .env to link t
 
 - 5/1 建立出前端、後端、資料庫架構與環境，前端完成 Navbar，並成功串起後端中央 Portal 驗證
 - 5/4 前端套上地圖初步 Demo，後端建立 items 表與部分 /item 路由
+- 5/5 4 小時 前端套上地圖初步 Demo，後端建立 items 表與部分 /item 路由
+- 5/7 2 小時 前端可以上傳物品、地圖可以呈現物品、可以上傳與顯示圖片
