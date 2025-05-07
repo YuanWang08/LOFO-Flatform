@@ -27,6 +27,14 @@ module.exports = (sequelize) => {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      contact: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
       image_url: {
         type: DataTypes.STRING(256),
         allowNull: false,

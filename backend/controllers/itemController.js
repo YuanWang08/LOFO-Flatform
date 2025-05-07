@@ -57,6 +57,9 @@ exports.createItem = async (req, res) => {
       "latitude",
       "longitude",
       "holding_state",
+      "description",
+      "contact",
+      "status",
     ];
     for (const field of requiredFields) {
       if (!payload[field]) {
