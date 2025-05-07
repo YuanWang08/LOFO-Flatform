@@ -3,6 +3,7 @@ const express = require("express");
 var createError = require("http-errors");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const path = require("path");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 var { sequelizeCheck } = require("./config/sequelize");
@@ -24,6 +25,9 @@ app.use(logger("dev"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static("public"));
+
+// 設置上傳文件的靜態訪問路徑
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
