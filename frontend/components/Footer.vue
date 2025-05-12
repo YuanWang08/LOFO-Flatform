@@ -148,7 +148,7 @@
             </li>
             <li class="flex items-center">
               <Phone size="18" class="mr-2 text-emerald-600 flex-shrink-0" />
-              <span class="text-gray-600">(03) 422-7151</span>
+              <span class="text-gray-600">0800-770-885</span>
             </li>
             <li class="flex items-center">
               <Mail size="18" class="mr-2 text-emerald-600 flex-shrink-0" />
