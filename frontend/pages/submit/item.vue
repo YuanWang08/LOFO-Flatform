@@ -31,28 +31,49 @@
           <label for="image" class="block text-sm font-medium mb-2">
             上傳物品照片
           </label>
-          <div class="mt-1 flex items-center">
-            <label
-              for="image-upload"
-              class="cursor-pointer bg-white border border-gray-300 rounded-md py-2 px-3 flex items-center justify-center text-sm text-gray-700 hover:bg-gray-50"
-            >
-              <Upload size="16" class="mr-2" />
-              <span>選擇照片</span>
-              <input
-                id="image-upload"
-                type="file"
-                accept="image/*"
-                class="sr-only"
-                @change="handleImageChange"
-              />
-            </label>
+          <div
+            class="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-6 transition-colors"
+            :class="{ 'border-emerald-500 bg-emerald-50': isDragging }"
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="handleFileDrop"
+          >
+            <div class="text-center">
+              <Upload class="mx-auto h-12 w-12 text-gray-400" />
+              <div class="mt-2 flex justify-center text-sm text-gray-600">
+                <label
+                  for="image-upload"
+                  class="relative cursor-pointer rounded-md font-medium text-emerald-600 hover:text-emerald-500"
+                >
+                  <span>點擊上傳照片</span>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    class="sr-only"
+                    @change="handleImageChange"
+                  />
+                </label>
+                <p class="pl-1">或將檔案拖曳至此處</p>
+              </div>
+              <p class="text-xs text-gray-500">支援PNG、JPG、GIF等圖片格式</p>
+            </div>
           </div>
           <div v-if="previewImage" class="mt-3">
-            <img
-              :src="previewImage"
-              alt="Preview"
-              class="h-40 w-auto rounded-md object-cover"
-            />
+            <div class="relative">
+              <img
+                :src="previewImage"
+                alt="Preview"
+                class="h-40 w-auto rounded-md object-cover"
+              />
+              <button
+                type="button"
+                @click="removeImage"
+                class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              >
+                <X size="16" class="text-gray-600" />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -294,6 +315,7 @@ const isItemActive = computed(() => route.path === "/submit/item");
 const isFoodActive = computed(() => route.path === "/submit/food");
 
 const itemType = ref("found");
+const isDragging = ref(false);
 
 const title = ref("");
 const category = ref("身分證件"); // 預設選項
@@ -349,13 +371,30 @@ const removeKeyword = (index) => {
 const handleImageChange = (e) => {
   const file = e.target.files?.[0];
   if (file) {
-    imageFile.value = file;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      previewImage.value = reader.result;
-    };
-    reader.readAsDataURL(file);
+    processSelectedFile(file);
   }
+};
+
+const handleFileDrop = (e) => {
+  isDragging.value = false;
+  const file = e.dataTransfer.files?.[0];
+  if (file && file.type.startsWith("image/")) {
+    processSelectedFile(file);
+  }
+};
+
+const processSelectedFile = (file) => {
+  imageFile.value = file;
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    previewImage.value = reader.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+const removeImage = () => {
+  imageFile.value = null;
+  previewImage.value = null;
 };
 
 const setLocation = (loc) => {
