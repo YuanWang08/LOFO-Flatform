@@ -273,7 +273,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useRuntimeConfig, useCookie } from "#app";
 import {
@@ -314,6 +314,25 @@ const contact = ref("");
 
 const isSubmitting = ref(false);
 const previewImage = ref(null);
+
+// 設置預設日期時間為當前時間
+onMounted(() => {
+  // 獲取當前日期和時間
+  const now = new Date();
+
+  // 格式化日期為 YYYY-MM-DD 格式
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  // 格式化時間為 HH:MM 格式
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  // 設置為默認值
+  date.value = `${year}-${month}-${day}`;
+  time.value = `${hours}:${minutes}`;
+});
 
 // 關鍵字處理函數
 const addKeyword = () => {

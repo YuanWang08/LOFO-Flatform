@@ -160,7 +160,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { Upload, MapPin, Loader2, Package, Utensils } from "lucide-vue-next";
 
@@ -177,6 +177,22 @@ const location = ref(null);
 const isSubmitting = ref(false);
 const previewImage = ref(null);
 const requireReservation = ref(true);
+
+// 設置預設日期時間為當前時間
+onMounted(() => {
+  // 獲取當前日期和時間
+  const now = new Date();
+
+  // 格式化為 datetime-local 輸入框所需的格式 (YYYY-MM-DDThh:mm)
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+
+  // 設置為默認值
+  expiry.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+});
 
 const handleImageChange = (e) => {
   const file = e.target.files?.[0];
