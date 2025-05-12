@@ -30,6 +30,7 @@
             <span>食物分享</span>
           </NuxtLink>
           <NuxtLink
+            v-if="isAuthenticated"
             to="/notifications"
             class="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 transition-colors"
           >
@@ -37,6 +38,7 @@
             <span>通知</span>
           </NuxtLink>
           <NuxtLink
+            v-if="isAuthenticated"
             to="/message"
             class="flex items-center space-x-1 text-gray-700 hover:text-emerald-600 transition-colors"
           >
@@ -162,6 +164,7 @@
           <span>食物分享</span>
         </NuxtLink>
         <NuxtLink
+          v-if="isAuthenticated"
           to="/notifications"
           class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
           @click="isMenuOpen = false"
@@ -170,6 +173,7 @@
           <span>通知</span>
         </NuxtLink>
         <NuxtLink
+          v-if="isAuthenticated"
           to="/message"
           class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
           @click="isMenuOpen = false"
