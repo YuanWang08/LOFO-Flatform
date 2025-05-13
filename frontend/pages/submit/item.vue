@@ -78,27 +78,17 @@
         </div>
 
         <div class="mb-6">
-          <h2 class="text-xl font-semibold mb-4">物品狀態</h2>
-          <div class="flex space-x-4">
-            <div class="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="found"
-                value="found"
-                v-model="itemType"
-                class="h-4 w-4 text-emerald-600 focus:ring-emerald-500"
-              />
-              <label for="found" class="cursor-pointer"> 我撿到了物品 </label>
-            </div>
-            <div class="flex items-center space-x-2">
-              <input
-                type="radio"
-                id="lost"
-                value="lost"
-                v-model="itemType"
-                class="h-4 w-4 text-emerald-600 focus:ring-emerald-500"
-              />
-              <label for="lost" class="cursor-pointer"> 我遺失了物品 </label>
+          <h2 class="text-xl font-semibold mb-4">物品登記</h2>
+          <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 mb-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <InfoIcon class="h-5 w-5 text-emerald-500" />
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-emerald-700">
+                  您正在登記一個拾獲物品，此物品將在審核後顯示在公開平台上，以便失主認領。
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -194,9 +184,7 @@
 
         <!-- 修改日期時間選擇 -->
         <div class="mb-6">
-          <label class="block text-sm font-medium mb-2">
-            {{ itemType === "found" ? "撿到日期時間" : "遺失日期時間" }}
-          </label>
+          <label class="block text-sm font-medium mb-2">撿到日期時間</label>
           <div class="flex space-x-2">
             <input
               v-model="date"
@@ -214,9 +202,7 @@
         </div>
 
         <div class="mb-6">
-          <label class="block text-sm font-medium mb-2">
-            {{ itemType === "found" ? "撿到地點" : "遺失地點" }}
-          </label>
+          <label class="block text-sm font-medium mb-2">撿到地點</label>
           <div class="mb-2 text-sm text-gray-600 flex items-center">
             <MapPin size="16" class="mr-1" />
             <span>請在地圖上標記位置</span>
@@ -236,7 +222,7 @@
             for="locationDescription"
             class="block text-sm font-medium mb-2"
           >
-            {{ itemType === "found" ? "撿到地點描述" : "遺失地點描述" }}
+            撿到地點描述
           </label>
           <input
             id="locationDescription"
@@ -246,18 +232,79 @@
           />
         </div>
 
-        <!-- 物品現在狀態 -->
+        <!-- 物品是否在您手上 -->
         <div class="mb-6">
-          <label for="holdingState" class="block text-sm font-medium mb-2">
-            物品現在狀態
-          </label>
-          <input
-            id="holdingState"
-            v-model="holding_state"
-            placeholder="例如：原地擺放、交由警衛室保管、自己保管中"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            required
-          />
+          <label class="block text-sm font-medium mb-2">物品現在位置</label>
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <input
+                id="with-owner"
+                v-model="is_with_owner"
+                type="radio"
+                :value="true"
+                name="item-location"
+                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+              />
+              <label for="with-owner" class="ml-2 block text-sm text-gray-700">
+                已帶走（在我手上）
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input
+                id="not-with-owner"
+                v-model="is_with_owner"
+                type="radio"
+                :value="false"
+                name="item-location"
+                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+              />
+              <label
+                for="not-with-owner"
+                class="ml-2 block text-sm text-gray-700"
+              >
+                留在原處
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 允許私訊 -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium mb-2">允許私訊</label>
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center">
+              <input
+                id="allow-message"
+                v-model="allow_message"
+                type="radio"
+                :value="true"
+                name="allow-message"
+                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+              />
+              <label
+                for="allow-message"
+                class="ml-2 block text-sm text-gray-700"
+              >
+                允許其他使用者傳送私訊給我
+              </label>
+            </div>
+            <div class="flex items-center">
+              <input
+                id="disallow-message"
+                v-model="allow_message"
+                type="radio"
+                :value="false"
+                name="allow-message"
+                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+              />
+              <label
+                for="disallow-message"
+                class="ml-2 block text-sm text-gray-700"
+              >
+                不允許私訊
+              </label>
+            </div>
+          </div>
         </div>
 
         <!-- 聯絡方式 -->
@@ -305,6 +352,7 @@ import {
   Utensils,
   Plus,
   X,
+  InfoIcon,
 } from "lucide-vue-next";
 
 const config = useRuntimeConfig();
@@ -314,7 +362,6 @@ const router = useRouter();
 const isItemActive = computed(() => route.path === "/submit/item");
 const isFoodActive = computed(() => route.path === "/submit/food");
 
-const itemType = ref("found");
 const isDragging = ref(false);
 
 const title = ref("");
@@ -331,7 +378,8 @@ const imageFile = ref(null);
 const keywordInput = ref("");
 const keywordArray = ref([]);
 const locationDescription = ref("");
-const holding_state = ref("");
+const is_with_owner = ref(true);
+const allow_message = ref(true);
 const contact = ref("");
 
 const isSubmitting = ref(false);
@@ -425,14 +473,16 @@ const handleSubmit = async () => {
     formData.append("title", title.value);
     formData.append("category", category.value);
     formData.append("keywords", JSON.stringify(keywordArray.value));
-    formData.append("status", itemType.value);
     formData.append("description", description.value);
     formData.append("discover_time", discover_time);
     formData.append("latitude", latitude.value);
     formData.append("longitude", longitude.value);
-    formData.append("holding_state", holding_state.value);
+    formData.append("is_with_owner", is_with_owner.value);
+    formData.append("allow_message", allow_message.value);
     formData.append("contact", contact.value);
     formData.append("location", locationDescription.value);
+    // 設置物品狀態為 'active'
+    formData.append("status", "active");
 
     if (imageFile.value) {
       formData.append("image", imageFile.value);
