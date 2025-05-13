@@ -26,7 +26,7 @@ exports.getAllItems = async (query = {}) => {
       where.category = category;
     }
 
-    // 如果提供了狀態(遺失/尋獲)，加入查詢條件
+    // 如果提供了狀態(active/claimed/closed/withdrawn)，加入查詢條件
     if (status) {
       where.status = status;
     }
@@ -38,9 +38,6 @@ exports.getAllItems = async (query = {}) => {
         { keywords: { [sequelize.Op.contains]: [keyword] } },
       ];
     }
-
-    // 只取得活躍的物品
-    where.is_active = true;
 
     // 計算分頁
     const offset = (page - 1) * limit;

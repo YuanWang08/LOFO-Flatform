@@ -56,10 +56,11 @@ exports.createItem = async (req, res) => {
       "discover_time",
       "latitude",
       "longitude",
-      "holding_state",
       "description",
       "contact",
       "status",
+      "is_with_owner",
+      "allow_message",
     ];
     for (const field of requiredFields) {
       if (!payload[field]) {
