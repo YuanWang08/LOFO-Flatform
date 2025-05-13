@@ -47,16 +47,15 @@
             <div class="mt-4 space-y-3">
               <div class="flex items-center">
                 <span
-                  class="px-2 py-1 text-xs font-semibold rounded-full"
-                  :class="
-                    selectedItem.status === 'found'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-blue-100 text-blue-800'
-                  "
+                  class="text-sm font-semibold"
+                  :class="{
+                    'text-emerald-600': selectedItem.status === 'active',
+                    'text-blue-600': selectedItem.status === 'claimed',
+                    'text-gray-600': selectedItem.status === 'closed',
+                    'text-red-600': selectedItem.status === 'withdrawn',
+                  }"
                 >
-                  {{
-                    selectedItem.status === "found" ? "拾獲物品" : "遺失物品"
-                  }}
+                  {{ getStatusText(selectedItem.status) }}
                 </span>
                 <span class="text-sm text-gray-600 ml-2"
                   >瀏覽次數: {{ selectedItem.view_count }}</span
@@ -75,8 +74,17 @@
                   {{ formatDate(selectedItem.discover_time) }}
                 </div>
 
-                <div class="col-span-1 text-gray-600">現在狀態</div>
-                <div class="col-span-2">{{ selectedItem.holding_state }}</div>
+                <div class="col-span-1 text-gray-600">物品位置</div>
+                <div class="col-span-2">
+                  {{
+                    selectedItem.is_with_owner ? "由發布者保管中" : "留在原處"
+                  }}
+                </div>
+
+                <div class="col-span-1 text-gray-600">私訊狀態</div>
+                <div class="col-span-2">
+                  {{ selectedItem.allow_message ? "可傳送私訊" : "不接受私訊" }}
+                </div>
 
                 <div class="col-span-1 text-gray-600">聯絡方式</div>
                 <div class="col-span-2">{{ selectedItem.contact }}</div>
@@ -163,6 +171,22 @@ const getFullImageUrl = (imagePath) => {
   return `${config.public.BACKEND_BASE_URL}${imagePath}`;
 };
 
+// 獲取狀態文字
+const getStatusText = (status) => {
+  switch (status) {
+    case "active":
+      return "等待拾獲中";
+    case "claimed":
+      return "已領取";
+    case "closed":
+      return "已結束";
+    case "withdrawn":
+      return "已撤回";
+    default:
+      return "未知狀態";
+  }
+};
+
 // 關閉詳細資訊彈出視窗
 const closeModal = () => {
   showDetailModal.value = false;
@@ -171,12 +195,15 @@ const closeModal = () => {
 // 獲取物品列表
 const fetchItems = async () => {
   try {
-    const response = await fetch(`${config.public.BACKEND_BASE_URL}/items`);
+    // 添加查詢參數，只請求狀態為"active"的物品
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/items?status=active`
+    );
     const data = await response.json();
 
     if (data.success && data.data) {
       items.value = data.data;
-      console.log("獲取物品列表成功:", items.value);
+      console.log("獲取活躍物品列表成功:", items.value);
 
       // 如果地圖已經初始化，則更新標記
       if (map && window.L) {
@@ -226,8 +253,8 @@ const updateMapMarkers = () => {
           <h3 class="font-semibold text-sm">${item.title}</h3>
           ${item.image_url ? `<img src="${getFullImageUrl(item.image_url)}" alt="${item.title}" style="width: 100%; height: auto; max-height: 80px; object-fit: contain; border-radius: 4px; margin: 4px 0;" />` : ""}
           <div class="mt-1">
-            <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${item.status === "found" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"}">
-              ${item.status === "found" ? "拾獲物品" : "遺失物品"}
+            <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${item.status === "active" ? "bg-emerald-100 text-emerald-800" : item.status === "claimed" ? "bg-blue-100 text-blue-800" : item.status === "closed" ? "bg-gray-100 text-gray-800" : "bg-red-100 text-red-800"}">
+              ${getStatusText(item.status)}
             </span>
           </div>
           <p class="text-xs mt-1 mb-0"><strong>地點:</strong> ${item.location}</p>
