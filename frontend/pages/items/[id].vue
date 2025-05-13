@@ -40,13 +40,16 @@
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
           <!-- 物品標題和狀態 -->
           <div class="p-6 border-b border-gray-200">
-            <div class="flex justify-between items-start">
-              <h1 class="text-3xl font-bold">{{ item.title }}</h1>
-              <span
-                :class="`px-2 py-1 text-sm rounded-full ${item.status === 'found' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`"
-              >
-                {{ item.status === "found" ? "已找到" : "尋找中" }}
-              </span>
+            <div class="mb-4">
+              <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold">{{ item.title }}</h1>
+                <span
+                  class="px-2 py-1 text-sm rounded-full"
+                  :class="getStatusClass(item.status)"
+                >
+                  {{ getStatusText(item.status) }}
+                </span>
+              </div>
             </div>
             <div class="flex flex-wrap gap-2 mt-3">
               <span
@@ -210,9 +213,10 @@
                   class="w-full h-full object-cover"
                 />
                 <span
-                  :class="`absolute top-2 right-2 px-2 py-1 text-xs rounded-full ${similarItem.status === 'found' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`"
+                  class="absolute top-2 right-2 px-2 py-1 text-xs rounded-full"
+                  :class="getStatusClass(similarItem.status)"
                 >
-                  {{ similarItem.status === "found" ? "已找到" : "尋找中" }}
+                  {{ getStatusText(similarItem.status) }}
                 </span>
               </div>
               <div class="p-4">
@@ -412,7 +416,7 @@ const similarItems = ref([
     id: "3",
     title: "藍色水壺",
     description: "在體育館撿到的藍色保溫水壺",
-    status: "found",
+    status: "claimed",
     date: "2023-04-26",
     location: "體育館",
     // image: "/placeholder.svg?height=200&width=300",
@@ -421,7 +425,7 @@ const similarItems = ref([
     id: "4",
     title: "學生證",
     description: "在宿舍區遺失的學生證",
-    status: "lost",
+    status: "closed",
     date: "2023-04-25",
     location: "宿舍區",
     // image: "/placeholder.svg?height=200&width=300",
@@ -430,7 +434,7 @@ const similarItems = ref([
     id: "5",
     title: "筆記型電腦",
     description: "在圖書館三樓遺失的筆記型電腦，黑色 MacBook Pro",
-    status: "lost",
+    status: "withdrawn",
     date: "2023-04-24",
     location: "圖書館三樓",
     // image: "/placeholder.svg?height=200&width=300",
@@ -698,4 +702,36 @@ onUnmounted(() => {
     itemMap = null;
   }
 });
+
+// 獲取狀態的顯示文字
+const getStatusText = (status) => {
+  switch (status) {
+    case "active":
+      return "活躍";
+    case "claimed":
+      return "已認領";
+    case "closed":
+      return "已結束";
+    case "withdrawn":
+      return "已撤回";
+    default:
+      return "未知狀態";
+  }
+};
+
+// 獲取狀態的樣式
+const getStatusClass = (status) => {
+  switch (status) {
+    case "active":
+      return "bg-emerald-100 text-emerald-800";
+    case "claimed":
+      return "bg-blue-100 text-blue-800";
+    case "closed":
+      return "bg-gray-100 text-gray-800";
+    case "withdrawn":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
 </script>

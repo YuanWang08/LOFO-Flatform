@@ -114,14 +114,11 @@
               class="w-full h-full object-contain"
             />
             <span
+              v-if="item.status"
               class="absolute top-2 right-2 px-2 py-1 text-xs rounded-full"
-              :class="
-                item.status === 'found'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-amber-100 text-amber-800'
-              "
+              :class="getStatusClass(item.status)"
             >
-              {{ item.status === "found" ? "已找到" : "尋找中" }}
+              {{ getStatusText(item.status) }}
             </span>
           </div>
           <div class="flex-1 flex flex-col p-4">
@@ -223,8 +220,10 @@ const categoryOptions = [
 // 狀態選項
 const statusOptions = [
   { value: "all", label: "所有狀態" },
-  { value: "found", label: "已找到" },
-  { value: "lost", label: "尋找中" },
+  { value: "active", label: "進行中" },
+  { value: "claimed", label: "已領取" },
+  { value: "closed", label: "已結案" },
+  { value: "withdrawn", label: "已撤回" },
 ];
 
 // 每頁顯示筆數選項
@@ -268,6 +267,28 @@ const formatImageUrl = (url) => {
 
   // 否則拼接後端base URL
   return `${config.public.BACKEND_BASE_URL}${url}`;
+};
+
+// 獲取狀態文字
+const getStatusText = (status) => {
+  const statusTextMap = {
+    active: "進行中",
+    claimed: "已領取",
+    closed: "已結案",
+    withdrawn: "已撤回",
+  };
+  return statusTextMap[status] || "未知狀態";
+};
+
+// 獲取狀態樣式
+const getStatusClass = (status) => {
+  const statusClassMap = {
+    active: "bg-emerald-100 text-emerald-800",
+    claimed: "bg-blue-100 text-blue-800",
+    closed: "bg-gray-100 text-gray-800",
+    withdrawn: "bg-red-100 text-red-800",
+  };
+  return statusClassMap[status] || "bg-gray-100 text-gray-800";
 };
 
 // 從API獲取資料
