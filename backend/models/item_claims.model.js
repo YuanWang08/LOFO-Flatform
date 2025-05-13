@@ -21,7 +21,7 @@ module.exports = (sequelize) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      claimed_by: {
+      claimer: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
