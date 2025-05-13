@@ -6,6 +6,16 @@ module.exports = (sequelize) => {
   const Item = sequelize.define(
     "items",
     {
+      created_by: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "user_id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
       item_id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -16,17 +26,26 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       category: {
-        type: DataTypes.STRING(8),
+        type: DataTypes.ENUM(
+          "保溫瓶",
+          "手錶",
+          "鑰匙",
+          "雨傘",
+          "有價票券",
+          "3C電子",
+          "身分證件",
+          "運動物品",
+          "眼鏡服裝",
+          "文具書籍",
+          "其他"
+        ),
         allowNull: false,
       },
       location: {
         type: DataTypes.STRING(32),
         allowNull: false,
       },
-      discover_time: {
-        type: DataTypes.DATE,
-        allowNull: false,
-      },
+
       description: {
         type: DataTypes.TEXT,
         allowNull: false,
@@ -49,39 +68,34 @@ module.exports = (sequelize) => {
         type: DataTypes.DOUBLE,
         allowNull: false,
       },
+      discover_time: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
       keywords: {
         type: DataTypes.ARRAY(DataTypes.TEXT),
         allowNull: true,
       },
-      status: {
-        type: DataTypes.ENUM("lost", "found"),
+      is_with_owner: {
+        type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: "lost",
+        defaultValue: false,
       },
-      holding_state: {
-        type: DataTypes.STRING(32),
-        allowNull: false,
-        defaultValue: "holding",
-      },
-      is_active: {
+      allow_message: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
       },
+
       view_count: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
       },
-      created_by: {
-        type: DataTypes.UUID,
+      status: {
+        type: DataTypes.ENUM("active", "claimed", "closed", "withdrawn"),
         allowNull: false,
-        references: {
-          model: "users",
-          key: "user_id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        defaultValue: "active",
       },
     },
     {

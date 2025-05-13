@@ -36,30 +36,6 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: "pending",
       },
-      message: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      is_resolved: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-        validate: {
-          isResolvedValid(value) {
-            if (value && !this.resolved_at) {
-              throw new Error("resolved_at 必須有值");
-            }
-          },
-        },
-      },
-      resolved_at: {
-        type: DataTypes.DATE,
-        allowNull: true,
-      },
-      reason: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
     },
     {
       timestamps: true, // 啟用時間戳記
