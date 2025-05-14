@@ -46,7 +46,7 @@ module.exports = (sequelize) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      expiry_date: {
+      expire_date: {
         type: DataTypes.DATE,
         allowNull: false,
       },
