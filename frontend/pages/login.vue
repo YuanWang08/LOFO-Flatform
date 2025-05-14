@@ -137,6 +137,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Mail, Lock, LogIn, Loader2 } from "lucide-vue-next"; // Importing icons from lucide-vue-next
+import { useAuthStore } from "~/stores/auth";
 
 const config = useRuntimeConfig();
 const router = useRouter();
@@ -157,13 +158,44 @@ const handleLogin = async () => {
   isLoading.value = true;
 
   try {
-    // 模擬登入 API 請求
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // 連接後端登入API
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/user/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.value,
+          password: password.value,
+        }),
+      }
+    );
 
-    // 登入成功後導向首頁
-    router.push("/");
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // 儲存 token 到 cookie
+      const authCookie = useCookie("auth_token", {
+        maxAge: 60 * 60 * 24 * 7, // 7天有效期
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      });
+      authCookie.value = data.token;
+
+      // 更新認證狀態
+      const authStore = useAuthStore();
+      authStore.checkAuth();
+
+      // 登入成功後導向首頁
+      router.push("/");
+    } else {
+      error.value = data.message || "登入失敗，請檢查您的帳號和密碼";
+    }
   } catch (err) {
-    error.value = "登入失敗，請檢查您的帳號和密碼";
+    console.error("登入錯誤:", err);
+    error.value = "登入失敗，請稍後再試";
   } finally {
     isLoading.value = false;
   }
