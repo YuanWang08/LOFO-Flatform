@@ -121,6 +121,111 @@
         </div>
       </div>
     </div>
+
+    <!-- 食物詳細資訊彈出視窗 -->
+    <div
+      v-if="showFoodDetailModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+    >
+      <div
+        class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+      >
+        <div class="p-5">
+          <div class="flex justify-between items-start">
+            <h2 class="text-xl font-bold">{{ selectedFood.title }}</h2>
+            <button
+              @click="closeFoodModal"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mt-4">
+            <!-- 食物圖片 -->
+            <div v-if="selectedFood.image_url" class="flex justify-center">
+              <img
+                :src="getFullImageUrl(selectedFood.image_url)"
+                :alt="selectedFood.title"
+                class="rounded-lg object-contain max-h-64 max-w-full"
+                style="margin: 0 auto"
+              />
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <div class="flex items-center">
+                <span
+                  class="text-sm font-semibold"
+                  :class="{
+                    'text-emerald-600': selectedFood.status === 'active',
+                    'text-blue-600': selectedFood.status === 'claimed',
+                    'text-gray-600': selectedFood.status === 'expired',
+                    'text-red-600': selectedFood.status === 'withdrawn',
+                  }"
+                >
+                  {{ getFoodStatusText(selectedFood.status) }}
+                </span>
+                <span class="text-sm text-gray-600 ml-2"
+                  >瀏覽次數: {{ selectedFood.view_count }}</span
+                >
+              </div>
+
+              <div class="grid grid-cols-3 gap-3 mt-3">
+                <div class="col-span-1 text-gray-600">類別</div>
+                <div class="col-span-2">{{ selectedFood.category }}</div>
+
+                <div class="col-span-1 text-gray-600">地點</div>
+                <div class="col-span-2">{{ selectedFood.location }}</div>
+
+                <div class="col-span-1 text-gray-600">份數</div>
+                <div class="col-span-2">{{ selectedFood.quantity }} 份</div>
+
+                <div class="col-span-1 text-gray-600">有效期限</div>
+                <div class="col-span-2">
+                  {{ formatDate(selectedFood.expire_date) }}
+                </div>
+
+                <div class="col-span-1 text-gray-600">取用方式</div>
+                <div class="col-span-2">
+                  {{ selectedFood.pickup_method === "self" ? "自取" : "預約" }}
+                </div>
+
+                <div class="col-span-1 text-gray-600">私訊狀態</div>
+                <div class="col-span-2">
+                  {{ selectedFood.allow_message ? "可傳送私訊" : "不接受私訊" }}
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <div class="text-gray-600">描述</div>
+                <p class="mt-1 text-sm">{{ selectedFood.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-center">
+            <NuxtLink
+              :to="`/foods/${selectedFood.food_id}`"
+              class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition-colors"
+            >
+              前往食物頁面
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -134,6 +239,11 @@ const config = useRuntimeConfig();
 const items = ref([]);
 const selectedItem = ref({});
 const showDetailModal = ref(false);
+
+// 食物資料和彈出視窗狀態
+const foods = ref([]);
+const selectedFood = ref({});
+const showFoodDetailModal = ref(false);
 
 // 使用 useHead 動態添加 Leaflet CSS 和 JS
 useHead({
@@ -187,9 +297,30 @@ const getStatusText = (status) => {
   }
 };
 
+// 獲取食物狀態文字
+const getFoodStatusText = (status) => {
+  switch (status) {
+    case "active":
+      return "可預約";
+    case "claimed":
+      return "已預約";
+    case "expired":
+      return "已過期";
+    case "withdrawn":
+      return "已撤回";
+    default:
+      return "未知狀態";
+  }
+};
+
 // 關閉詳細資訊彈出視窗
 const closeModal = () => {
   showDetailModal.value = false;
+};
+
+// 關閉食物詳細資訊彈出視窗
+const closeFoodModal = () => {
+  showFoodDetailModal.value = false;
 };
 
 // 獲取物品列表
@@ -213,6 +344,35 @@ const fetchItems = async () => {
   } catch (error) {
     console.error("獲取物品列表失敗:", error);
   }
+};
+
+// 獲取食物列表
+const fetchFoods = async () => {
+  try {
+    // 添加查詢參數，只請求狀態為"active"的食物
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/foods?status=active`
+    );
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      foods.value = data.data;
+      console.log("獲取活躍食物列表成功:", foods.value);
+
+      // 如果地圖已經初始化，則更新食物標記
+      if (map && window.L) {
+        updateFoodMarkers();
+      }
+    }
+  } catch (error) {
+    console.error("獲取食物列表失敗:", error);
+  }
+};
+
+// 顯示食物詳情
+const showFoodDetail = (food) => {
+  selectedFood.value = food;
+  showFoodDetailModal.value = true;
 };
 
 // 顯示物品詳情
@@ -299,9 +459,90 @@ const updateMapMarkers = () => {
   });
 };
 
+// 更新地圖上的食物標記
+const updateFoodMarkers = () => {
+  // 不需要清除原有標記，只添加食物標記
+
+  // 創建綠色圖標
+  const greenIcon = window.L.icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+
+  // 為每個食物創建標記
+  foods.value.forEach((food) => {
+    // 檢查食物是否有有效的坐標
+    if (food.latitude && food.longitude) {
+      // 創建標記
+      const marker = window.L.marker([food.latitude, food.longitude], {
+        icon: greenIcon,
+      }).addTo(map);
+
+      // 簡易資訊彈出窗口
+      const popupContent = `
+        <div class="item-popup">
+          <h3 class="font-semibold text-sm">${food.title}</h3>
+          ${food.image_url ? `<img src="${getFullImageUrl(food.image_url)}" alt="${food.title}" style="width: 100%; height: auto; max-height: 80px; object-fit: contain; border-radius: 4px; margin: 4px 0;" />` : ""}
+          <div class="mt-1">
+            <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${food.status === "active" ? "bg-emerald-100 text-emerald-800" : food.status === "claimed" ? "bg-blue-100 text-blue-800" : food.status === "expired" ? "bg-gray-100 text-gray-800" : "bg-red-100 text-red-800"}">
+              ${getFoodStatusText(food.status)}
+            </span>
+          </div>
+          <p class="text-xs mt-1 mb-0"><strong>類別:</strong> ${food.category}</p>
+          <p class="text-xs mt-0.5 mb-0"><strong>份數:</strong> ${food.quantity}</p>
+          <p class="text-xs mt-0.5 mb-0"><strong>地點:</strong> ${food.location}</p>
+          <p class="text-xs mt-0.5 mb-1"><strong>過期時間:</strong> ${formatDate(food.expire_date)}</p>
+          <button 
+            id="food-detail-btn-${food.food_id}" 
+            class="mt-1 bg-emerald-600 text-white text-xs py-1 px-2 rounded hover:bg-emerald-700 w-full"
+            style="cursor: pointer;"
+          >
+            查看詳情
+          </button>
+        </div>
+      `;
+
+      // 綁定彈出視窗
+      const popupOptions = {
+        maxWidth: 180,
+        className: "custom-popup",
+        offset: [0, -10],
+      };
+
+      marker.bindPopup(popupContent, popupOptions);
+
+      // 將標記添加到數組中以便後續管理
+      markers.push(marker);
+
+      // 標記打開時添加事件監聽器到"查看詳情"按鈕
+      marker.on("popupopen", () => {
+        setTimeout(() => {
+          const detailBtn = document.getElementById(
+            `food-detail-btn-${food.food_id}`
+          );
+          if (detailBtn) {
+            detailBtn.addEventListener("click", () => {
+              showFoodDetail(food);
+              marker.closePopup();
+            });
+          }
+        }, 100);
+      });
+    }
+  });
+};
+
 onMounted(() => {
   // 獲取物品列表
   fetchItems();
+
+  // 獲取食物列表
+  fetchFoods();
 
   // 確保在客戶端環境下執行
   if (process.client) {
@@ -331,6 +572,11 @@ onMounted(() => {
         // 如果此時已有物品數據，添加到地圖上
         if (items.value.length > 0) {
           updateMapMarkers();
+        }
+
+        // 如果此時已有食物數據，添加到地圖上
+        if (foods.value.length > 0) {
+          updateFoodMarkers();
         }
       }
     }, 500); // 給一點時間讓 Leaflet 腳本載入
