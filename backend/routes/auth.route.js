@@ -13,6 +13,6 @@ router.get("/callback", authMid.oauth, userCtrl.auth);
 
 router.get("/fakeAuth", authMid.fakeAuth, userCtrl.auth);
 
-router.get("/fakeToken", authMid.fakeAuth, userCtrl.authToken);
+router.get("/fakeToken", authMid.fakeAuth, userCtrl.getFakeToken);
 
 module.exports = router;
