@@ -52,7 +52,7 @@ module.exports.sequelizeCheck = async () => {
       .authenticate()
       .then(() => console.log("✅ Sequelize 成功連線到 PostgreSQL"))
       .catch((err) => console.error("❌ Sequelize 錯誤：", err));
-    await sequelize.sync({ force: true }); // force: true will drop the table if it already exists
+    await sequelize.sync({}); // force: true will drop the table if it already exists
   } catch (error) {
     console.log("Unable to connect to the database:", error);
   }
