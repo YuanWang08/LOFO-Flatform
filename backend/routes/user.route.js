@@ -6,19 +6,22 @@ const userCtrl = require("../controllers/userController");
 router.get("/check", authmid.authRequired(), userCtrl.check);
 router.get("/info", authmid.authRequired(), userCtrl.getUserInfo);
 
-// register
-// router.post("/register", userCtrl.register);
+// 註冊新用戶
+router.post("/register", userCtrl.register);
 
-// login
-// router.post("/login", userCtrl.login);
+// 用戶登入
+router.post("/login", userCtrl.login);
 
-// reset password
-// router.post("/reset", userCtrl.resetPassword);
+// 發送重設密碼電子郵件
+router.post("/reset-password", userCtrl.resetPassword);
 
-// update password
-// router.put("/update", authmid.authRequired(), userCtrl.updatePassword);
+// 使用令牌確認重設密碼
+router.post("/confirm-reset", userCtrl.confirmResetPassword);
 
-// update user info
-// router.put("/update", authmid.authRequired(), userCtrl.updateUserInfo);
+// 已登入用戶更新密碼
+router.put("/password", authmid.authRequired(), userCtrl.updatePassword);
+
+// 更新用戶資訊
+router.put("/update", authmid.authRequired(), userCtrl.updateUserInfo);
 
 module.exports = router;
