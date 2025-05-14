@@ -199,7 +199,9 @@ import {
   KeyRound,
   Loader2,
 } from "lucide-vue-next";
+import { useRuntimeConfig } from "#app";
 
+const config = useRuntimeConfig();
 const router = useRouter();
 const step = ref("email");
 const isLoading = ref(false);
@@ -208,6 +210,7 @@ const verificationCode = ref("");
 const newPassword = ref("");
 const confirmPassword = ref("");
 const error = ref("");
+let resetToken = "";
 
 // 根據當前步驟顯示不同的標題和描述
 const stepTitle = computed(() => {
@@ -240,6 +243,7 @@ const stepDescription = computed(() => {
   }
 });
 
+// 處理提交電子郵件
 const handleSubmitEmail = async () => {
   error.value = "";
 
@@ -250,20 +254,41 @@ const handleSubmitEmail = async () => {
 
   isLoading.value = true;
 
-  // 模擬 API 請求
   try {
-    // 這裡應該是實際的發送重設密碼郵件的 API 請求
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // 發送重設密碼請求到後端
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/user/reset-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.value,
+        }),
+      }
+    );
 
-    // 進入驗證碼步驟
-    step.value = "verification";
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // 儲存重設令牌（實際環境中這個令牌應該發送到用戶郵箱，這裡僅作演示）
+      resetToken = data.resetToken;
+
+      // 進入驗證碼步驟
+      step.value = "verification";
+    } else {
+      error.value = data.message || "發送重設密碼郵件失敗，請稍後再試";
+    }
   } catch (err) {
+    console.error("重設密碼請求錯誤:", err);
     error.value = "發送重設密碼郵件失敗，請稍後再試";
   } finally {
     isLoading.value = false;
   }
 };
 
+// 驗證重設密碼的驗證碼
 const handleSubmitVerification = async () => {
   error.value = "";
 
@@ -272,22 +297,16 @@ const handleSubmitVerification = async () => {
     return;
   }
 
-  isLoading.value = true;
-
-  // 模擬 API 請求
-  try {
-    // 這裡應該是實際的驗證碼驗證 API 請求
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // 進入重設密碼步驟
+  // 這裡假設驗證碼就是重設令牌的前6位
+  // 實際生產環境中應該通過API進行驗證
+  if (verificationCode.value === resetToken.substring(0, 6)) {
     step.value = "reset";
-  } catch (err) {
+  } else {
     error.value = "驗證碼錯誤，請重新輸入";
-  } finally {
-    isLoading.value = false;
   }
 };
 
+// 重設密碼
 const handleResetPassword = async () => {
   error.value = "";
 
@@ -308,14 +327,32 @@ const handleResetPassword = async () => {
 
   isLoading.value = true;
 
-  // 模擬 API 請求
   try {
-    // 這裡應該是實際的重設密碼 API 請求
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // 發送確認重設密碼請求到後端
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/user/confirm-reset`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          resetToken: resetToken,
+          newPassword: newPassword.value,
+        }),
+      }
+    );
 
-    // 重設成功
-    step.value = "success";
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      // 重設成功
+      step.value = "success";
+    } else {
+      error.value = data.message || "重設密碼失敗，請稍後再試";
+    }
   } catch (err) {
+    console.error("重設密碼錯誤:", err);
     error.value = "重設密碼失敗，請稍後再試";
   } finally {
     isLoading.value = false;
