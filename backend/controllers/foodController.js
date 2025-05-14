@@ -152,6 +152,49 @@ exports.getFoodById = async (req, res) => {
   }
 };
 
+// 獲取食物的公開資訊（包含已預約數量，無需登入）
+exports.getFoodPublicInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const food = await FoodCrud.getFoodById(id);
+
+    if (!food) {
+      return res.status(404).json({
+        success: false,
+        message: "找不到指定食物",
+      });
+    }
+
+    // 計算已預約的份數（只考慮已接受或待處理的預約）
+    const reservations = await FoodCrud.getFoodReservations(id);
+    const reservedQuantity = reservations.reduce((total, reservation) => {
+      if (
+        reservation.status === "accepted" ||
+        reservation.status === "pending"
+      ) {
+        return total + reservation.quantity;
+      }
+      return total;
+    }, 0);
+
+    return res.status(200).json({
+      success: true,
+      message: "獲取食物公開資訊成功",
+      data: {
+        reservedQuantity,
+        // 可以添加其他公開資訊
+      },
+    });
+  } catch (error) {
+    console.error("獲取食物公開資訊失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法獲取食物公開資訊",
+      error: error.message,
+    });
+  }
+};
+
 // 更新食物資訊
 exports.updateFood = async (req, res) => {
   try {

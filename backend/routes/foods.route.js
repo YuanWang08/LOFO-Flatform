@@ -28,6 +28,9 @@ router.get("/", foodCtrl.getAllFoods);
 // GET /api/foods/:id - 取得單一食物詳情
 router.get("/:id", foodCtrl.getFoodById);
 
+// GET /api/foods/:id/public-info - 獲取食物公開資訊（無需登入）
+router.get("/:id/public-info", foodCtrl.getFoodPublicInfo);
+
 // PUT /api/foods/:id - 更新食物資訊
 router.put("/:id", authMid.authRequired(), foodCtrl.updateFood);
 
