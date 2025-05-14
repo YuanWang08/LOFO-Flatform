@@ -53,6 +53,7 @@ exports.createFood = async (req, res) => {
       "longitude",
       "quantity",
       "status",
+      "pickup_method",
     ];
 
     for (const field of requiredFields) {

@@ -67,6 +67,15 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: 1,
       },
+      pickup_method: {
+        type: DataTypes.ENUM("self", "reserve"),
+        allowNull: false,
+      },
+      allow_message: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       view_count: {
         type: DataTypes.INTEGER,
         allowNull: false,
