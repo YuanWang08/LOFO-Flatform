@@ -55,7 +55,7 @@
               <span
                 v-for="(keyword, index) in item.keywords"
                 :key="index"
-                class="px-2 py-1 text-xs bg-gray-100 rounded-full"
+                class="px-2 py-1 text-xs bg-amber-500 font-bold rounded-full"
               >
                 {{ keyword }}
               </span>
