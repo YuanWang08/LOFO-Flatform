@@ -10,12 +10,30 @@ module.exports = (sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
+      created_by: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: "users",
+          key: "user_id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
       title: {
         type: DataTypes.STRING(32),
         allowNull: false,
       },
       category: {
-        type: DataTypes.STRING(16),
+        type: DataTypes.ENUM(
+          "即期品",
+          "水果",
+          "蔬菜",
+          "飲料",
+          "零食",
+          "烘焙食品",
+          "剩菜"
+        ),
         allowNull: false,
       },
       image_url: {
@@ -49,25 +67,14 @@ module.exports = (sequelize) => {
         allowNull: false,
         defaultValue: 1,
       },
-      is_available: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: true,
-      },
       view_count: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
       },
-      created_by: {
-        type: DataTypes.UUID,
+      status: {
+        type: DataTypes.ENUM("active", "claimed", "expired", "withdrawn"),
         allowNull: false,
-        references: {
-          model: "users",
-          key: "user_id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
       },
     },
     {
