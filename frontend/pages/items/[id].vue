@@ -252,9 +252,7 @@
             </div>
             <div>
               <p class="font-medium">{{ creatorName }}</p>
-              <p class="text-sm text-gray-500">
-                {{ item.status === "found" ? "拾獲者" : "遺失者" }}
-              </p>
+              <p class="text-sm text-gray-500">拾獲者</p>
             </div>
           </div>
 
@@ -264,28 +262,109 @@
             <p v-if="item.contact_info" class="text-gray-700">
               {{ item.contact_info }}
             </p>
+            <p
+              class="text-xs mt-2"
+              :class="item.allow_message ? 'text-emerald-600' : 'text-red-600'"
+            >
+              <span v-if="item.allow_message" class="flex items-center">
+                <MessageSquareText class="h-3 w-3 mr-1" />
+                允許私訊
+              </span>
+              <span v-else class="flex items-center">
+                <MessageSquareOff class="h-3 w-3 mr-1" />
+                不允許私訊
+              </span>
+            </p>
+            <!-- 顯示物品是否由管理者持有 -->
+            <p
+              class="text-xs mt-2 flex items-center"
+              :class="item.is_with_owner ? 'text-amber-600' : 'text-gray-500'"
+            >
+              <Package class="h-3 w-3 mr-1" />
+              {{
+                item.is_with_owner ? "物品已由管理者保管" : "物品未由管理者保管"
+              }}
+            </p>
           </div>
 
-          <!-- 發送訊息 -->
-          <div class="space-y-3">
+          <!-- 發送訊息 (根據 allow_message 顯示不同內容) -->
+          <div v-if="item.allow_message" class="space-y-3">
             <textarea
               v-model="message"
               placeholder="輸入訊息..."
               class="w-full border border-gray-300 rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
               rows="3"
+              :disabled="item.status !== 'active'"
+              :class="{ 'bg-gray-100': item.status !== 'active' }"
             ></textarea>
             <button
               @click="handleSendMessage"
-              :disabled="isSending || !message.trim()"
+              :disabled="
+                isSending || !message.trim() || item.status !== 'active'
+              "
               class="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div v-if="isSending" class="flex items-center justify-center">
                 <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                 發送中...
               </div>
+              <div
+                v-else-if="item.status !== 'active'"
+                class="flex items-center justify-center"
+              >
+                <XCircle class="mr-2 h-4 w-4" />
+                {{ getDisabledMessageText(item.status) }}
+              </div>
               <div v-else class="flex items-center justify-center">
                 <MessageCircle class="mr-2 h-4 w-4" />
                 發送訊息
+              </div>
+            </button>
+
+            <!-- 如果物品留在原處且開放私訊，增加認領按鈕 -->
+            <button
+              v-if="!item.is_with_owner"
+              @click="handleClaimItem"
+              :disabled="isClaiming || item.status !== 'active'"
+              class="w-full px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            >
+              <div v-if="isClaiming" class="flex items-center justify-center">
+                <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+                處理中...
+              </div>
+              <div
+                v-else-if="item.status !== 'active'"
+                class="flex items-center justify-center"
+              >
+                <XCircle class="mr-2 h-4 w-4" />
+                {{ getStatusActionText(item.status) }}
+              </div>
+              <div v-else class="flex items-center justify-center">
+                <Hand class="mr-2 h-4 w-4" />
+                這是我的，我已拾回
+              </div>
+            </button>
+          </div>
+          <div v-else class="space-y-3">
+            <button
+              @click="handleClaimItem"
+              :disabled="isClaiming || item.status !== 'active'"
+              class="w-full px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div v-if="isClaiming" class="flex items-center justify-center">
+                <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+                處理中...
+              </div>
+              <div
+                v-else-if="item.status !== 'active'"
+                class="flex items-center justify-center"
+              >
+                <XCircle class="mr-2 h-4 w-4" />
+                {{ item.status === "claimed" ? "物品已被認領" : "無法操作" }}
+              </div>
+              <div v-else class="flex items-center justify-center">
+                <Hand class="mr-2 h-4 w-4" />
+                這是我的，我已拾回
               </div>
             </button>
           </div>
@@ -355,9 +434,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useRuntimeConfig } from "#app";
+import { useRuntimeConfig, useCookie } from "#app";
 import { useHead } from "#imports";
 import {
   MapPin,
@@ -372,6 +451,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  MessageSquareText,
+  MessageSquareOff,
+  Hand,
+  Package,
+  XCircle,
 } from "lucide-vue-next";
 
 useHead({
@@ -406,6 +490,7 @@ const message = ref("");
 const isSending = ref(false);
 const isReporting = ref(false);
 const isMarkingFound = ref(false);
+const isClaiming = ref(false);
 const mapInitialized = ref(false);
 let itemMap = null;
 let itemMarker = null; // 添加標記變數以便於管理
@@ -593,6 +678,42 @@ const handleShare = () => {
   }
 };
 
+// 認領物品
+const handleClaimItem = async () => {
+  isClaiming.value = true;
+
+  try {
+    // 獲取認證 token
+    const authCookie = useCookie("auth_token");
+
+    // 發送認領請求
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/items/${id}/claim`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authCookie.value}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert("物品認領成功，將為您聯繫物品拾獲者！");
+      fetchItemData(); // 重新獲取物品數據以顯示更新後的狀態
+    } else {
+      alert(`認領失敗: ${data.message}`);
+    }
+  } catch (error) {
+    console.error("認領物品時發生錯誤:", error);
+    alert("認領物品時發生錯誤，請稍後再試。");
+  } finally {
+    isClaiming.value = false;
+  }
+};
+
 // 監控 activeTab 變化，初始化地圖
 watch(activeTab, (newTab) => {
   if (newTab === "location") {
@@ -732,6 +853,34 @@ const getStatusClass = (status) => {
       return "bg-red-100 text-red-800";
     default:
       return "bg-gray-100 text-gray-800";
+  }
+};
+
+// 獲取禁用訊息的顯示文字
+const getDisabledMessageText = (status) => {
+  switch (status) {
+    case "claimed":
+      return "物品已被認領";
+    case "closed":
+      return "物品已結束";
+    case "withdrawn":
+      return "物品已撤回";
+    default:
+      return "無法操作";
+  }
+};
+
+// 獲取狀態操作的顯示文字
+const getStatusActionText = (status) => {
+  switch (status) {
+    case "claimed":
+      return "物品已被認領";
+    case "closed":
+      return "物品已結束";
+    case "withdrawn":
+      return "物品已撤回";
+    default:
+      return "無法操作";
   }
 };
 </script>
