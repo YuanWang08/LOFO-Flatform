@@ -2,25 +2,27 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// 定義圖片存儲的配置
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, "../uploads/item");
+// 創建一個根據請求路徑確定存儲位置的通用函數
+const createStorage = (folderName) => {
+  return multer.diskStorage({
+    destination: function (req, file, cb) {
+      const uploadPath = path.join(__dirname, `../uploads/${folderName}`);
 
-    // 確保上傳目錄存在
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
+      // 確保上傳目錄存在
+      if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+      }
 
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    // 生成唯一的文件名 (時間戳 + 原始文件名)
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const extname = path.extname(file.originalname);
-    cb(null, uniqueSuffix + extname);
-  },
-});
+      cb(null, uploadPath);
+    },
+    filename: function (req, file, cb) {
+      // 生成唯一的文件名 (時間戳 + 原始文件名)
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const extname = path.extname(file.originalname);
+      cb(null, uniqueSuffix + extname);
+    },
+  });
+};
 
 // 文件類型過濾
 const fileFilter = (req, file, cb) => {
@@ -33,8 +35,17 @@ const fileFilter = (req, file, cb) => {
 };
 
 // 創建 multer 實例
-const upload = multer({
-  storage: storage,
+const itemUpload = multer({
+  storage: createStorage("item"),
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 限制上傳大小為 5MB
+  },
+});
+
+// 創建食物圖片上傳的 multer 實例
+const foodUpload = multer({
+  storage: createStorage("food"),
   fileFilter: fileFilter,
   limits: {
     fileSize: 5 * 1024 * 1024, // 限制上傳大小為 5MB
@@ -42,7 +53,8 @@ const upload = multer({
 });
 
 // 單一圖片上傳中介件
-exports.singleItemImage = upload.single("image");
+exports.singleItemImage = itemUpload.single("image");
+exports.singleFoodImage = foodUpload.single("image");
 
 // 錯誤處理中介件
 exports.handleUploadError = (err, req, res, next) => {
