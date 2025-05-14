@@ -4,6 +4,14 @@ const { Sequelize } = require("sequelize");
 const usersModel = require("../models/users.model");
 const itemsModel = require("../models/items.model");
 const itemClaimsModel = require("../models/item_claims.model");
+const chatroomsModel = require("../models/chatrooms.model");
+const chatroomParticipantsModel = require("../models/chatroom_participants.model");
+const messagesModel = require("../models/messages.model");
+const notificationsModel = require("../models/notifications.model");
+const reportsModel = require("../models/reports.model");
+const reservationsModel = require("../models/reservations.model");
+const userPointLogModel = require("../models/user_point_log.model");
+const foodsModel = require("../models/foods.model");
 
 const modelAssociationSetup = require("../models/modelsAssociationSetup");
 
@@ -16,7 +24,19 @@ const sequelize = new Sequelize({
   database: process.env.DB_NAME,
 });
 
-const modelDefiners = [usersModel, itemsModel, itemClaimsModel];
+const modelDefiners = [
+  usersModel,
+  itemsModel,
+  itemClaimsModel,
+  chatroomsModel,
+  chatroomParticipantsModel,
+  messagesModel,
+  notificationsModel,
+  reportsModel,
+  reservationsModel,
+  userPointLogModel,
+  foodsModel,
+];
 
 for (const modelDefiner of modelDefiners) {
   modelDefiner(sequelize);
