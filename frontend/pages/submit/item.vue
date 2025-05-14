@@ -238,19 +238,6 @@
           <div class="flex items-center space-x-4">
             <div class="flex items-center">
               <input
-                id="with-owner"
-                v-model="is_with_owner"
-                type="radio"
-                :value="true"
-                name="item-location"
-                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
-              />
-              <label for="with-owner" class="ml-2 block text-sm text-gray-700">
-                已帶走（在我手上）
-              </label>
-            </div>
-            <div class="flex items-center">
-              <input
                 id="not-with-owner"
                 v-model="is_with_owner"
                 type="radio"
@@ -265,13 +252,49 @@
                 留在原處
               </label>
             </div>
+            <div class="flex items-center">
+              <input
+                id="with-owner"
+                v-model="is_with_owner"
+                type="radio"
+                :value="true"
+                name="item-location"
+                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+              />
+              <label for="with-owner" class="ml-2 block text-sm text-gray-700">
+                已帶走（在我手上）
+              </label>
+            </div>
           </div>
         </div>
 
         <!-- 允許私訊 -->
         <div class="mb-6">
           <label class="block text-sm font-medium mb-2">允許私訊</label>
-          <div class="flex items-center space-x-4">
+          <div
+            v-if="is_with_owner"
+            class="p-3 bg-gray-50 border border-gray-200 rounded-md"
+          >
+            <div class="flex items-center">
+              <input
+                id="allow-message"
+                v-model="allow_message"
+                type="radio"
+                :value="true"
+                name="allow-message"
+                class="h-4 w-4 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+                checked
+                disabled
+              />
+              <label
+                for="allow-message"
+                class="ml-2 block text-sm text-gray-700"
+              >
+                已帶走物品必須允許其他使用者傳送私訊給我
+              </label>
+            </div>
+          </div>
+          <div v-else class="flex items-center space-x-4">
             <div class="flex items-center">
               <input
                 id="allow-message"
@@ -341,7 +364,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useRuntimeConfig, useCookie } from "#app";
 import {
@@ -378,7 +401,7 @@ const imageFile = ref(null);
 const keywordInput = ref("");
 const keywordArray = ref([]);
 const locationDescription = ref("");
-const is_with_owner = ref(true);
+const is_with_owner = ref(false);
 const allow_message = ref(true);
 const contact = ref("");
 
@@ -402,6 +425,13 @@ onMounted(() => {
   // 設置為默認值
   date.value = `${year}-${month}-${day}`;
   time.value = `${hours}:${minutes}`;
+});
+
+// 監聽is_with_owner變更，當選擇"已帶走"時自動設置allow_message為true
+watch(is_with_owner, (newVal) => {
+  if (newVal === true) {
+    allow_message.value = true;
+  }
 });
 
 // 關鍵字處理函數
