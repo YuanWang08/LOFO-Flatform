@@ -2,6 +2,128 @@
   <div class="map-container">
     <div id="map" class="h-map w-full"></div>
 
+    <!-- 篩選按鈕 -->
+    <div
+      v-if="!showFilterPanel"
+      class="filter-button"
+      @click="toggleFilterPanel"
+    >
+      <Search size="18" />
+    </div>
+
+    <!-- 篩選面板 -->
+    <div
+      v-if="showFilterPanel"
+      class="filter-panel bg-white p-4 rounded-lg shadow-lg"
+    >
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="font-medium text-gray-700">篩選選項</h3>
+        <button
+          @click="toggleFilterPanel"
+          class="text-gray-500 hover:text-gray-700 p-1 rounded-full hover:bg-gray-100"
+        >
+          <X size="18" />
+        </button>
+      </div>
+
+      <div class="mb-3">
+        <h3 class="font-medium text-gray-700 mb-2">資料類型</h3>
+        <div class="flex items-center gap-3">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="filters.showItems"
+              class="h-4 w-4 text-red-600 focus:ring-red-500 rounded"
+            />
+            <span class="ml-2 flex items-center">
+              <span
+                class="inline-block w-3 h-3 bg-red-500 rounded-full mr-1"
+              ></span>
+              遺失物
+            </span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="filters.showFoods"
+              class="h-4 w-4 text-green-600 focus:ring-green-500 rounded"
+            />
+            <span class="ml-2 flex items-center">
+              <span
+                class="inline-block w-3 h-3 bg-green-500 rounded-full mr-1"
+              ></span>
+              食物分享
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="font-medium text-gray-700 mb-2">狀態篩選</h3>
+        <div class="space-y-2">
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="filters.showActive"
+              class="h-4 w-4 text-emerald-600 focus:ring-emerald-500 rounded"
+            />
+            <span class="ml-2 flex items-center">
+              <span
+                class="inline-block w-2 h-2 bg-emerald-500 rounded-full mr-1"
+              ></span>
+              活躍 (可領取/預約)
+            </span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="filters.showClaimed"
+              class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded"
+            />
+            <span class="ml-2 flex items-center">
+              <span
+                class="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"
+              ></span>
+              已領取/預約
+            </span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="filters.showExpired"
+              class="h-4 w-4 text-gray-600 focus:ring-gray-500 rounded"
+            />
+            <span class="ml-2 flex items-center">
+              <span
+                class="inline-block w-2 h-2 bg-gray-500 rounded-full mr-1"
+              ></span>
+              已結束/過期
+            </span>
+          </label>
+          <label class="flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="filters.showWithdrawn"
+              class="h-4 w-4 text-red-600 focus:ring-red-500 rounded"
+            />
+            <span class="ml-2 flex items-center">
+              <span
+                class="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"
+              ></span>
+              已撤回
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <button
+        @click="applyFilters"
+        class="mt-4 w-full bg-emerald-600 text-white py-1.5 px-3 rounded hover:bg-emerald-700 transition-colors text-sm"
+      >
+        套用篩選
+      </button>
+    </div>
+
     <!-- 詳細資訊彈出視窗 -->
     <div
       v-if="showDetailModal"
@@ -230,10 +352,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { useHead, useRuntimeConfig } from "#imports";
+import { Search, X } from "lucide-vue-next";
 
 const config = useRuntimeConfig();
+
+// 篩選條件
+const filters = ref({
+  showItems: true,
+  showFoods: true,
+  showActive: true,
+  showClaimed: false,
+  showExpired: false,
+  showWithdrawn: false,
+});
+
+// 篩選面板狀態
+const showFilterPanel = ref(false);
 
 // 物品資料和彈出視窗狀態
 const items = ref([]);
@@ -323,21 +459,45 @@ const closeFoodModal = () => {
   showFoodDetailModal.value = false;
 };
 
+// 切換篩選面板
+const toggleFilterPanel = () => {
+  showFilterPanel.value = !showFilterPanel.value;
+};
+
 // 獲取物品列表
 const fetchItems = async () => {
   try {
-    // 添加查詢參數，只請求狀態為"active"的物品
+    // 根據篩選條件建立狀態字符串
+    const statusParams = [];
+
+    if (filters.value.showActive) statusParams.push("active");
+    if (filters.value.showClaimed) statusParams.push("claimed");
+    if (filters.value.showExpired) statusParams.push("closed"); // 物品中的過期狀態是 "closed"
+    if (filters.value.showWithdrawn) statusParams.push("withdrawn");
+
+    // 如果沒有選擇任何狀態，則不獲取任何資料
+    if (statusParams.length === 0) {
+      items.value = [];
+      return;
+    }
+
+    // 將狀態數組轉換為URL查詢參數
+    const statusQuery = statusParams
+      .map((status) => `status=${status}`)
+      .join("&");
+
+    // 發送請求
     const response = await fetch(
-      `${config.public.BACKEND_BASE_URL}/items?status=active`
+      `${config.public.BACKEND_BASE_URL}/items?${statusQuery}`
     );
     const data = await response.json();
 
     if (data.success && data.data) {
       items.value = data.data;
-      console.log("獲取活躍物品列表成功:", items.value);
+      console.log("獲取物品列表成功:", items.value);
 
       // 如果地圖已經初始化，則更新標記
-      if (map && window.L) {
+      if (map && window.L && filters.value.showItems) {
         updateMapMarkers();
       }
     }
@@ -349,18 +509,37 @@ const fetchItems = async () => {
 // 獲取食物列表
 const fetchFoods = async () => {
   try {
-    // 添加查詢參數，只請求狀態為"active"的食物
+    // 根據篩選條件建立狀態字符串
+    const statusParams = [];
+
+    if (filters.value.showActive) statusParams.push("active");
+    if (filters.value.showClaimed) statusParams.push("claimed");
+    if (filters.value.showExpired) statusParams.push("expired"); // 食物中的過期狀態是 "expired"
+    if (filters.value.showWithdrawn) statusParams.push("withdrawn");
+
+    // 如果沒有選擇任何狀態，則不獲取任何資料
+    if (statusParams.length === 0) {
+      foods.value = [];
+      return;
+    }
+
+    // 將狀態數組轉換為URL查詢參數
+    const statusQuery = statusParams
+      .map((status) => `status=${status}`)
+      .join("&");
+
+    // 發送請求
     const response = await fetch(
-      `${config.public.BACKEND_BASE_URL}/foods?status=active`
+      `${config.public.BACKEND_BASE_URL}/foods?${statusQuery}`
     );
     const data = await response.json();
 
     if (data.success && data.data) {
       foods.value = data.data;
-      console.log("獲取活躍食物列表成功:", foods.value);
+      console.log("獲取食物列表成功:", foods.value);
 
       // 如果地圖已經初始化，則更新食物標記
-      if (map && window.L) {
+      if (map && window.L && filters.value.showFoods) {
         updateFoodMarkers();
       }
     }
@@ -537,6 +716,23 @@ const updateFoodMarkers = () => {
   });
 };
 
+// 套用篩選條件
+const applyFilters = () => {
+  // 清除現有的標記
+  markers.forEach((marker) => map.removeLayer(marker));
+  markers = [];
+
+  // 更新物品標記
+  if (filters.value.showItems) {
+    fetchItems();
+  }
+
+  // 更新食物標記
+  if (filters.value.showFoods) {
+    fetchFoods();
+  }
+};
+
 onMounted(() => {
   // 獲取物品列表
   fetchItems();
@@ -604,6 +800,41 @@ onUnmounted(() => {
   height: 100%;
   width: 100%;
   z-index: 1; /* 確保地圖的z-index低於導航欄 */
+}
+
+/* 篩選按鈕樣式 */
+.filter-button {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  background-color: #fff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.filter-button:hover {
+  background-color: #f0f0f0;
+}
+
+.filter-button.active {
+  background-color: #e0e0e0;
+}
+
+/* 篩選面板樣式 */
+.filter-panel {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 1000;
+  width: 300px;
 }
 
 /* 彈出視窗樣式 */
