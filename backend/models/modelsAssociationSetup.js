@@ -77,7 +77,7 @@ module.exports = (sequelize) => {
   if (foods) {
     // 一個使用者可以分享多個食物
     users.hasMany(foods, {
-      foreignKey: "shared_by",
+      foreignKey: "created_by",
       as: "sharedFoods",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
@@ -85,7 +85,7 @@ module.exports = (sequelize) => {
 
     // 每個食物都由一個使用者分享
     foods.belongsTo(users, {
-      foreignKey: "shared_by",
+      foreignKey: "created_by",
       as: "sharer",
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
