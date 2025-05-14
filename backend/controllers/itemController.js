@@ -184,3 +184,47 @@ exports.getItemById = async (req, res) => {
     });
   }
 };
+
+// 使用者認領物品
+exports.claimItem = async (req, res) => {
+  try {
+    const { id } = req.params; // 獲取物品 ID
+    const userId = req.id; // 從認證中獲取用戶 ID
+
+    // 調用 CRUD 層進行物品認領
+    const result = await ItemCrud.claimItem(id, userId);
+
+    // 返回成功結果
+    return res.status(200).json({
+      success: true,
+      message: "物品認領請求已提交",
+      data: {
+        item_id: id,
+        claim_id: result.claim.claim_id,
+        claim_status: result.claim.status,
+      },
+    });
+  } catch (error) {
+    console.error("認領物品失敗:", error);
+
+    // 處理特定錯誤
+    if (error.message === "物品不存在") {
+      return res.status(404).json({
+        success: false,
+        message: error.message,
+      });
+    } else if (error.message === "物品狀態不允許認領") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    // 處理通用錯誤
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法認領物品",
+      error: error.message,
+    });
+  }
+};

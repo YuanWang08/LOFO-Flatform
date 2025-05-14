@@ -1,5 +1,5 @@
 const {
-  models: { items: Item, users: User },
+  models: { items: Item, users: User, item_claims: ItemClaim },
 } = require("../config/sequelize");
 
 const sequelize = require("../config/sequelize");
@@ -95,6 +95,50 @@ exports.getItemById = async (itemId) => {
     return item;
   } catch (error) {
     console.error("獲取物品失敗:", error);
+    throw error;
+  }
+};
+
+exports.claimItem = async (itemId, userId) => {
+  try {
+    // 開始事務
+    const transaction = await sequelize.transaction();
+
+    try {
+      // 檢查物品是否存在且狀態為 active
+      const item = await Item.findByPk(itemId, { transaction });
+      if (!item) {
+        throw new Error("物品不存在");
+      }
+
+      if (item.status !== "active") {
+        throw new Error("物品狀態不允許認領");
+      }
+
+      // 創建物品認領記錄
+      const claim = await ItemClaim.create(
+        {
+          item_id: itemId,
+          claimed_by: userId,
+          status: "accepted", // 直接設定為已接受，無論是否允許私訊
+        },
+        { transaction }
+      );
+
+      // 更改物品狀態為已認領
+      await item.update({ status: "claimed" }, { transaction });
+
+      // 提交事務
+      await transaction.commit();
+
+      return { item, claim };
+    } catch (error) {
+      // 回滾事務
+      await transaction.rollback();
+      throw error;
+    }
+  } catch (error) {
+    console.error("認領物品失敗:", error);
     throw error;
   }
 };

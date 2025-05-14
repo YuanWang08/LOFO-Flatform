@@ -28,11 +28,7 @@ router.get("/", itemCtrl.getAllItems);
 // GET /api/items/:id - 取得單一物品詳情
 router.get("/:id", itemCtrl.getItemById);
 
-// PUT /api/items/:id/claim - 申領物品
-router.put("/:id/claim", authMid.authRequired(), async (req, res) => {
-  res.status(200).json({
-    response: "ok",
-  });
-});
+// PUT /api/items/:id/claim - 認領物品
+router.post("/:id/claim", authMid.authRequired(), itemCtrl.claimItem);
 
 module.exports = router;
