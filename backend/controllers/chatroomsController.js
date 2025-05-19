@@ -17,6 +17,7 @@ const getUserChatrooms = async (req, res) => {
           include: [
             {
               model: db.chatroom_participants,
+              as: "roomParticipants",
               include: [
                 {
                   model: db.users,
@@ -43,7 +44,7 @@ const getUserChatrooms = async (req, res) => {
         event_type: chatroom.event_type,
         event_id: chatroom.event_id,
         status: chatroom.status,
-        participants: chatroom.chatroom_participants.map((p) => ({
+        participants: chatroom.roomParticipants.map((p) => ({
           user_id: p.user.user_id,
           username: p.user.username,
           avatar: p.user.avatar,
@@ -81,6 +82,14 @@ const createChatroom = async (req, res) => {
     const { user_id } = req.user;
     const { event_type, event_id, participant_ids } = req.body;
 
+    // 確保event_id存在且有效
+    if (!event_id) {
+      return res.status(400).json({
+        success: false,
+        message: "缺少必要參數: event_id",
+      });
+    }
+
     // 確保參與者包含當前用戶
     const allParticipants = Array.from(
       new Set([user_id, ...(participant_ids || [])])
@@ -92,6 +101,7 @@ const createChatroom = async (req, res) => {
       include: [
         {
           model: db.chatroom_participants,
+          as: "roomParticipants",
           where: { user_id },
         },
       ],
@@ -163,6 +173,7 @@ const getChatroomDetails = async (req, res) => {
       include: [
         {
           model: db.chatroom_participants,
+          as: "roomParticipants",
           include: [
             {
               model: db.users,
@@ -186,7 +197,7 @@ const getChatroomDetails = async (req, res) => {
       event_type: chatroom.event_type,
       event_id: chatroom.event_id,
       status: chatroom.status,
-      participants: chatroom.chatroom_participants.map((p) => ({
+      participants: chatroom.roomParticipants.map((p) => ({
         user_id: p.user.user_id,
         username: p.user.username,
         avatar: p.user.avatar,
