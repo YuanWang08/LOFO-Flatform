@@ -503,6 +503,7 @@ const config = useRuntimeConfig();
 const router = useRouter();
 const route = useRoute();
 const id = route.params.id;
+const authStore = useAuthStore();
 
 // 狀態變數
 const loading = ref(true);
@@ -708,17 +709,64 @@ const prevImage = () => {
 };
 
 // 發送訊息
-const handleSendMessage = () => {
-  if (!message.value.trim()) return;
+const handleSendMessage = async () => {
+  if (!message.value.trim() || !authStore.isAuthenticated) return;
+  if (food.value.status !== "active") return;
 
   isSending.value = true;
 
-  // 模擬 API 請求
-  setTimeout(() => {
+  try {
+    // 獲取認證 token
+    const authCookie = useCookie("auth_token"); // 1. 創建或獲取已有的聊天室
+    const chatResponse = await fetch(
+      `${config.public.BACKEND_BASE_URL}/chatrooms`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authCookie.value}`,
+        },
+        body: JSON.stringify({
+          event_type: "food", // 食物分享類型
+          event_id: food.value.food_id || food.value.id, // 確保使用正確的 food_id
+          participant_ids: [food.value.created_by], // 添加食物創建者為參與者
+        }),
+      }
+    );
+
+    const chatData = await chatResponse.json();
+
+    if (chatData.success) {
+      // 2. 發送第一條消息
+      if (chatData.message !== "聊天室已存在") {
+        await fetch(
+          `${config.public.BACKEND_BASE_URL}/messages/chatroom/${chatData.data.chatroom_id}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${authCookie.value}`,
+            },
+            body: JSON.stringify({ content: message.value.trim() }),
+          }
+        );
+      }
+
+      // 3. 跳轉到聊天頁面
+      router.push({
+        path: "/message",
+        query: { id: chatData.data.chatroom_id },
+      });
+    } else {
+      alert("創建聊天室失敗，請稍後再試");
+    }
+  } catch (error) {
+    console.error("發送訊息失敗:", error);
+    alert("發送訊息失敗，請稍後再試");
+  } finally {
     isSending.value = false;
     message.value = "";
-    alert("訊息已發送！");
-  }, 1000);
+  }
 };
 
 // 舉報食物
