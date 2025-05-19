@@ -15,7 +15,22 @@ const getToken = async (id) => {
 };
 
 exports.auth = async (req, res) => {
-  const user = await UserCrud.findOrCreate(req.authInfo.identifier);
+  // 檢查是否來自 Google 登入
+  const isGoogleAuth = req.authInfo.provider === "google";
+  let user;
+
+  if (isGoogleAuth) {
+    // 使用 email 作為識別符，尋找或創建用戶
+    user = await UserCrud.findOrCreateByEmail(req.authInfo.profile.email, {
+      provider: "google",
+      name: req.authInfo.profile.name || null,
+      profile_image: req.authInfo.profile.picture || null,
+    });
+  } else {
+    // 原有的 Portal 登入流程
+    user = await UserCrud.findOrCreate(req.authInfo.identifier);
+  }
+
   if (!user) {
     return res.status(500).json({
       error: "creating user failed",
@@ -28,14 +43,10 @@ exports.auth = async (req, res) => {
     });
   }
 
-  // return res.status(200).json({
-  //   token: await getToken(user[0]["user_id"]),
-  // });
-  return res.redirect(
-    `${process.env.FRONTEND_BASE_URL}/token?token=${await getToken(
-      user[0]["user_id"]
-    )}`
-  );
+  // 處理重導向，支援 Portal 和 Google 兩種登入
+  const userId = isGoogleAuth ? user.user_id : user[0]["user_id"];
+  const token = await getToken(userId);
+  return res.redirect(`${process.env.FRONTEND_BASE_URL}/token?token=${token}`);
 };
 
 exports.getFakeToken = async (req, res) => {

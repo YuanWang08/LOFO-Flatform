@@ -32,6 +32,32 @@ exports.findUserByEmail = async (email) => {
   }
 };
 
+// 根據 Email 查找用戶，若不存在則創建
+exports.findOrCreateByEmail = async (email, additionalData = {}) => {
+  try {
+    let user = await User.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      user = await User.create({
+        email,
+        ...additionalData,
+      });
+    } else {
+      // 如果用戶存在且有額外資料需要更新
+      if (Object.keys(additionalData).length > 0) {
+        await user.update(additionalData);
+      }
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Error finding or creating user by email:", error.message);
+    throw error;
+  }
+};
+
 exports.createUser = async (userData) => {
   try {
     // 雜湊密碼
