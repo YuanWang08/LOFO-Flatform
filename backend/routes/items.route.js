@@ -31,4 +31,7 @@ router.get("/:id", itemCtrl.getItemById);
 // PUT /api/items/:id/claim - 認領物品
 router.post("/:id/claim", authMid.authRequired(), itemCtrl.claimItem);
 
+// PUT /api/items/:id - 更新物品資訊
+router.put("/:id", authMid.authRequired(), itemCtrl.updateItem);
+
 module.exports = router;

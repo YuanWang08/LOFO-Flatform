@@ -142,3 +142,35 @@ exports.claimItem = async (itemId, userId) => {
     throw error;
   }
 };
+
+// 更新物品狀態
+exports.updateItemStatus = async (itemId, status) => {
+  try {
+    const item = await Item.findByPk(itemId);
+    if (!item) {
+      throw new Error("物品不存在");
+    }
+
+    await item.update({ status });
+    return item;
+  } catch (error) {
+    console.error("更新物品狀態失敗:", error);
+    throw error;
+  }
+};
+
+// 更新物品資訊
+exports.updateItem = async (itemId, updateData) => {
+  try {
+    const item = await Item.findByPk(itemId);
+    if (!item) {
+      throw new Error("物品不存在");
+    }
+
+    await item.update(updateData);
+    return item;
+  } catch (error) {
+    console.error("更新物品資訊失敗:", error);
+    throw error;
+  }
+};

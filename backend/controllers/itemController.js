@@ -228,3 +228,43 @@ exports.claimItem = async (req, res) => {
     });
   }
 };
+
+// 更新物品資訊
+exports.updateItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.id;
+
+    // 檢查是否是物品的擁有者
+    const item = await ItemCrud.getItemById(id);
+    if (!item) {
+      return res.status(404).json({
+        success: false,
+        message: "找不到指定物品",
+      });
+    }
+
+    if (item.created_by !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "您沒有權限更新這個物品",
+      });
+    }
+
+    // 更新物品資訊
+    const updatedItem = await ItemCrud.updateItem(id, req.body);
+
+    return res.status(200).json({
+      success: true,
+      message: "物品資訊更新成功",
+      data: updatedItem,
+    });
+  } catch (error) {
+    console.error("更新物品失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法更新物品",
+      error: error.message,
+    });
+  }
+};
