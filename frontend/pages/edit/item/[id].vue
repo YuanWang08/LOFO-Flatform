@@ -24,23 +24,21 @@
           注意：物品標題和圖片一旦發布後不能修改。如需更改，請撤回物品並重新發布。
         </p>
       </div>
-
       <div class="mb-6">
         <h2 class="text-xl font-semibold mb-2 text-gray-700">
-          物品標題與圖片 (不可修改)
+          物品資訊 (不可修改)
         </h2>
-        <div class="flex items-center mb-4">
-          <div class="w-1/3">
-            <img
-              :src="formatImageUrl(item.image_url) || '/images/placeholder.png'"
-              alt="物品圖片"
-              class="rounded-lg object-cover h-48 w-full"
-            />
-          </div>
-          <div class="w-2/3 pl-4">
-            <p class="text-gray-700 font-semibold mb-2">標題:</p>
-            <p class="text-gray-900 mb-4">{{ item.title }}</p>
-          </div>
+        <!-- 標題 -->
+        <div class="mb-4">
+          <h1 class="text-2xl font-bold text-gray-900">{{ item.title }}</h1>
+        </div>
+        <!-- 圖片 -->
+        <div class="mb-4">
+          <img
+            :src="formatImageUrl(item.image_url) || '/images/placeholder.png'"
+            alt="物品圖片"
+            class="rounded-lg object-contain max-h-72 w-auto mx-auto"
+          />
         </div>
       </div>
 
@@ -292,7 +290,7 @@ const newKeyword = ref("");
 
 // 格式化圖片URL
 const formatImageUrl = (url) => {
-  if (!url) return "";
+  if (!url) return "/placeholder.svg?height=200&width=300";
 
   // 如果已經是完整URL，直接返回
   if (url.startsWith("http")) {
@@ -321,21 +319,22 @@ const fetchItem = async () => {
     if (!data.success) {
       throw new Error(data.message || "獲取物品資訊失敗");
     }
-
     item.value = data.data;
 
-    // 將資料填入表單
-    formData.title = item.value.title;
-    formData.category = item.value.category;
-    formData.location = item.value.location;
-    formData.discover_time = formatDateTime(item.value.discover_time);
-    formData.latitude = item.value.latitude;
-    formData.longitude = item.value.longitude;
-    formData.description = item.value.description;
-    formData.contact = item.value.contact;
-    formData.status = item.value.status;
-    formData.is_with_owner = item.value.is_with_owner;
-    formData.allow_message = item.value.allow_message;
+    // 將資料填入表單，確保每個欄位都有默認值
+    formData.title = item.value.title || "";
+    formData.category = item.value.category || "electronics";
+    formData.location = item.value.location || "";
+    formData.discover_time = formatDateTime(item.value.discover_time) || "";
+    formData.latitude = item.value.latitude || 0;
+    formData.longitude = item.value.longitude || 0;
+    formData.description = item.value.description || "";
+    formData.contact = item.value.contact || "";
+    formData.status = item.value.status || "available";
+    formData.is_with_owner =
+      item.value.is_with_owner !== undefined ? item.value.is_with_owner : false;
+    formData.allow_message =
+      item.value.allow_message !== undefined ? item.value.allow_message : true;
     formData.keywords = Array.isArray(item.value.keywords)
       ? [...item.value.keywords]
       : [];

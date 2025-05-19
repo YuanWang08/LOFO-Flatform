@@ -24,23 +24,21 @@
           注意：食物標題和圖片一旦發布後不能修改。如需更改，請撤回食物並重新發布。
         </p>
       </div>
-
       <div class="mb-6">
         <h2 class="text-xl font-semibold mb-2 text-gray-700">
-          食物標題與圖片 (不可修改)
+          食物資訊 (不可修改)
         </h2>
-        <div class="flex items-center mb-4">
-          <div class="w-1/3">
-            <img
-              :src="formatImageUrl(food.image_url) || '/images/placeholder.png'"
-              alt="食物圖片"
-              class="rounded-lg object-cover h-48 w-full"
-            />
-          </div>
-          <div class="w-2/3 pl-4">
-            <p class="text-gray-700 font-semibold mb-2">標題:</p>
-            <p class="text-gray-900 mb-4">{{ food.title }}</p>
-          </div>
+        <!-- 標題 -->
+        <div class="mb-4">
+          <h1 class="text-2xl font-bold text-gray-900">{{ food.title }}</h1>
+        </div>
+        <!-- 圖片 -->
+        <div class="mb-4">
+          <img
+            :src="formatImageUrl(food.image_url) || '/images/placeholder.png'"
+            alt="食物圖片"
+            class="rounded-lg object-contain max-h-72 w-auto mx-auto"
+          />
         </div>
       </div>
 
@@ -230,7 +228,7 @@ const error = ref(null);
 
 // 格式化圖片URL
 const formatImageUrl = (url) => {
-  if (!url) return "";
+  if (!url) return "/placeholder.svg?height=200&width=300";
 
   // 如果已經是完整URL，直接返回
   if (url.startsWith("http")) {
@@ -260,20 +258,19 @@ const fetchFood = async () => {
     if (!data.success) {
       throw new Error(data.message || "獲取食物資訊失敗");
     }
-
     food.value = data.data;
 
-    // 將資料填入表單
-    formData.title = food.value.title;
-    formData.category = food.value.category;
-    formData.location = food.value.location;
-    formData.expire_date = formatDate(food.value.expire_date);
-    formData.latitude = food.value.latitude;
-    formData.longitude = food.value.longitude;
+    // 將資料填入表單，確保每個欄位都有默認值
+    formData.title = food.value.title || "";
+    formData.category = food.value.category || "fruits";
+    formData.location = food.value.location || "";
+    formData.expire_date = formatDate(food.value.expire_date) || "";
+    formData.latitude = food.value.latitude || 0;
+    formData.longitude = food.value.longitude || 0;
     formData.description = food.value.description || "";
-    formData.quantity = food.value.quantity;
-    formData.status = food.value.status;
-    formData.pickup_method = food.value.pickup_method;
+    formData.quantity = food.value.quantity || 1;
+    formData.status = food.value.status || "available";
+    formData.pickup_method = food.value.pickup_method || "self-pickup";
   } catch (err) {
     console.error("獲取食物失敗:", err);
     error.value = err.message || "獲取食物資訊時發生錯誤";
