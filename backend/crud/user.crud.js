@@ -1,5 +1,5 @@
 const {
-  models: { users: User },
+  models: { users: User, items: Item },
 } = require("../config/sequelize");
 
 const sequelize = require("../config/sequelize");
@@ -132,5 +132,83 @@ exports.verifyPassword = async (user, password) => {
   } catch (error) {
     console.error("Error verifying password:", error.message);
     return false;
+  }
+};
+
+exports.getUploadItemsCount = async (userId) => {
+  try {
+    const count = await Item.count({
+      where: {
+        created_by: userId,
+      },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error getting upload items count:", error.message);
+    return 0;
+  }
+};
+
+exports.getUploadFoodsCount = async (userId) => {
+  try {
+    // 引入 Food 模型
+    const {
+      models: { foods: Food },
+    } = require("../config/sequelize");
+
+    const count = await Food.count({
+      where: {
+        created_by: userId,
+      },
+    });
+    return count;
+  } catch (error) {
+    console.error("Error getting upload foods count:", error.message);
+    return 0;
+  }
+};
+
+exports.getHelpCount = async (userId) => {
+  try {
+    // 引入必要的模型
+    const {
+      models: { items: Item, foods: Food, item_claims: ItemClaim },
+    } = require("../config/sequelize");
+
+    // 計算用戶發布的物品被他人認領並確認的數量
+    // 首先找出用戶發布的所有物品ID
+    const userItems = await Item.findAll({
+      where: {
+        created_by: userId,
+      },
+      attributes: ["item_id"],
+    });
+
+    const userItemIds = userItems.map((item) => item.item_id);
+
+    // 然後計算這些物品中被他人成功認領的數量
+    const itemsHelpCount =
+      userItemIds.length > 0
+        ? await ItemClaim.count({
+            where: {
+              item_id: userItemIds,
+              status: "accepted",
+            },
+          })
+        : 0;
+
+    // 計算用戶分享食物幫助他人的數量（用戶是食物的創建者且狀態為已被領取）
+    const foodsHelpCount = await Food.count({
+      where: {
+        created_by: userId,
+        status: "claimed", // 只計算已被領取的食物
+      },
+    });
+
+    // 總協助數量是物品被成功認領的數量加上食物被成功領取的數量
+    return itemsHelpCount + foodsHelpCount;
+  } catch (error) {
+    console.error("Error getting help count:", error.message);
+    return 0;
   }
 };

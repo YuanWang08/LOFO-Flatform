@@ -77,6 +77,17 @@ exports.getUserInfo = async (req, res) => {
     delete user.dataValues.createdAt;
     delete user.dataValues.updatedAt;
     delete user.dataValues.deletedAt;
+
+    // 加上 已發布遺失物數量
+    const uploadItemsCount = await UserCrud.getUploadItemsCount(req.id);
+    user.dataValues.upload_items_count = uploadItemsCount;
+    // 加上 已發布食物數量
+    const uploadFoodsCount = await UserCrud.getUploadFoodsCount(req.id);
+    user.dataValues.upload_foods_count = uploadFoodsCount;
+    // 加上 已幫助他人數量
+    const helpCount = await UserCrud.getHelpCount(req.id);
+    user.dataValues.help_count = helpCount;
+
     return res.status(200).json(user);
   } catch (error) {
     console.error("Error in getUserInfo:", error);
