@@ -2,9 +2,16 @@ const express = require("express");
 const router = express.Router();
 const authmid = require("../middlewares/auth.mid");
 const userCtrl = require("../controllers/userController");
+const userActivitiesCtrl = require("../controllers/userActivitiesController");
 
 router.get("/check", authmid.authRequired(), userCtrl.check);
 router.get("/info", authmid.authRequired(), userCtrl.getUserInfo);
+
+// 獲取用戶發布的物品列表
+router.get("/items", authmid.authRequired(), userActivitiesCtrl.getUserItems);
+
+// 獲取用戶發布的食物列表
+router.get("/foods", authmid.authRequired(), userActivitiesCtrl.getUserFoods);
 
 // 註冊新用戶
 router.post("/register", userCtrl.register);
