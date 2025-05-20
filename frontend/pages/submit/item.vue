@@ -39,39 +39,71 @@
             @drop.prevent="handleFileDrop"
           >
             <div class="text-center">
-              <Upload class="mx-auto h-12 w-12 text-gray-400" />
-              <div class="mt-2 flex justify-center text-sm text-gray-600">
+              <Upload
+                v-if="!previewImage"
+                class="mx-auto h-12 w-12 text-gray-400"
+              />
+              <div v-if="!previewImage" class="mt-2">
                 <label
-                  for="image-upload"
-                  class="relative cursor-pointer rounded-md font-medium text-emerald-600 hover:text-emerald-500"
+                  for="file-upload"
+                  class="cursor-pointer rounded-md font-medium text-emerald-600 hover:text-emerald-500"
                 >
-                  <span>點擊上傳照片</span>
+                  <span>上傳圖片</span>
                   <input
-                    id="image-upload"
+                    id="file-upload"
                     type="file"
-                    accept="image/*"
                     class="sr-only"
+                    accept="image/*"
                     @change="handleImageChange"
                   />
                 </label>
-                <p class="pl-1">或將檔案拖曳至此處</p>
+                <p class="text-xs text-gray-500">PNG, JPG 格式，最大 10MB</p>
+                <p class="text-xs text-emerald-600 mt-2">
+                  上傳圖片後，Gemini AI 將自動協助您分析物品資訊
+                </p>
               </div>
-              <p class="text-xs text-gray-500">支援PNG、JPG、GIF等圖片格式</p>
             </div>
           </div>
           <div v-if="previewImage" class="mt-3">
-            <div class="relative">
+            <div
+              class="relative aspect-video rounded-lg overflow-hidden border border-gray-300"
+            >
               <img
                 :src="previewImage"
                 alt="Preview"
-                class="h-40 w-auto rounded-md object-cover"
+                class="object-contain w-full h-full"
               />
               <button
                 type="button"
                 @click="removeImage"
-                class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+                class="absolute top-2 right-2 bg-gray-800 bg-opacity-50 text-white rounded-full p-1 hover:bg-opacity-70"
               >
-                <X size="16" class="text-gray-600" />
+                <X size="16" />
+              </button>
+              <!-- 分析中指示器 -->
+              <div
+                v-if="isAnalyzing"
+                class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50"
+              >
+                <div class="text-center text-white">
+                  <Loader2 class="animate-spin h-8 w-8 mx-auto mb-2" />
+                  <p class="text-sm">正在使用 Gemini 分析物品...</p>
+                </div>
+              </div>
+            </div>
+            <!-- Gemini 分析按鈕 -->
+            <div class="mt-2 flex justify-end">
+              <button
+                v-if="!isFirstUpload"
+                type="button"
+                @click="analyzeWithGemini"
+                class="flex items-center gap-1 px-3 py-1 text-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-md hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                :disabled="isAnalyzing"
+              >
+                <span v-if="isAnalyzing">
+                  <Loader2 class="animate-spin" size="14" />
+                </span>
+                <span>使用 Gemini 分析</span>
               </button>
             </div>
           </div>
@@ -387,6 +419,8 @@ const isItemActive = computed(() => route.path === "/submit/item");
 const isFoodActive = computed(() => route.path === "/submit/food");
 
 const isDragging = ref(false);
+const isFirstUpload = ref(true); // 標記是否為首次上傳
+const isAnalyzing = ref(false); // 標記是否正在分析中
 
 const title = ref("");
 const category = ref("身分證件"); // 預設選項
@@ -467,6 +501,11 @@ const processSelectedFile = (file) => {
   const reader = new FileReader();
   reader.onloadend = () => {
     previewImage.value = reader.result;
+    // 如果是首次上傳圖片，自動調用 Gemini 分析
+    if (isFirstUpload.value) {
+      analyzeWithGemini();
+      isFirstUpload.value = false;
+    }
   };
   reader.readAsDataURL(file);
 };
@@ -474,6 +513,81 @@ const processSelectedFile = (file) => {
 const removeImage = () => {
   imageFile.value = null;
   previewImage.value = null;
+  // 重設為首次上傳
+  isFirstUpload.value = true;
+};
+
+// 使用 Gemini 分析圖片
+const analyzeWithGemini = async () => {
+  if (!imageFile.value) return;
+
+  isAnalyzing.value = true;
+
+  try {
+    // 取得認證 Token
+    const authCookie = useCookie("auth_token");
+
+    if (!authCookie.value) {
+      Swal.fire({
+        icon: "warning",
+        title: "需要登入",
+        text: "您需要先登入才能使用 Gemini 分析功能",
+        confirmButtonColor: "#10b981",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", imageFile.value);
+
+    // 呼叫 Gemini API 分析物品
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/gemini/analyze-item`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authCookie.value}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("分析失敗");
+    }
+
+    const result = await response.json();
+    console.log("Gemini 分析結果:", result);
+
+    // 更新表單資料
+    title.value = result.title || title.value;
+    category.value = result.category || category.value;
+    description.value = result.description || description.value;
+
+    // 更新關鍵字
+    if (result.keywords && Array.isArray(result.keywords)) {
+      keywordArray.value = result.keywords.slice(0, 6); // 確保最多 6 個關鍵字
+    }
+
+    // 顯示成功訊息
+    Swal.fire({
+      icon: "success",
+      title: "分析完成",
+      text: "Gemini 已成功分析物品資訊！",
+      confirmButtonColor: "#10b981",
+    });
+  } catch (error) {
+    console.error("Gemini 分析失敗:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "分析失敗",
+      text: "無法使用 Gemini 分析此圖片，請手動填寫資訊",
+      confirmButtonColor: "#10b981",
+    });
+  } finally {
+    isAnalyzing.value = false;
+  }
 };
 
 const setLocation = (loc) => {
