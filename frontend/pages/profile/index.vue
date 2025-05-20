@@ -21,12 +21,36 @@
           重新載入
         </button>
       </div>
-
       <!-- 個人資料卡片 -->
       <div v-else class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
         <div
-          class="relative h-40 bg-gradient-to-r from-emerald-500 to-teal-400"
-        ></div>
+          :class="[
+            'relative h-40',
+            user.level === 1
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+              : user.level === 2
+                ? 'bg-gradient-to-r from-gray-400 to-gray-300'
+                : user.level === 3
+                  ? 'bg-gradient-to-r from-amber-400 to-yellow-300'
+                  : user.level === 4
+                    ? 'bg-gradient-to-r from-blue-400 to-cyan-300'
+                    : 'bg-gradient-to-r from-purple-600 to-pink-600',
+          ]"
+        >
+          <div v-if="user.level >= 3" class="absolute inset-0 overflow-hidden">
+            <div
+              v-if="user.level === 3"
+              class="absolute w-full h-full opacity-20 bg-yellow-stars"
+            ></div>
+            <div
+              v-else-if="user.level === 4"
+              class="absolute w-full h-full opacity-20 bg-diamond-pattern"
+            ></div>
+            <div v-else class="absolute inset-0">
+              <div class="stars"></div>
+            </div>
+          </div>
+        </div>
         <div class="relative px-6 pb-6">
           <div class="flex justify-between">
             <div class="flex-1">
@@ -41,12 +65,39 @@
                   />
                 </div>
               </div>
-              <h1 class="text-2xl font-bold">
-                {{ user.nickname || "未設置暱稱" }}
-              </h1>
-              <p class="text-gray-500" v-if="user.identifier">
-                @{{ user.identifier }}
-              </p>
+              <div class="flex items-center">
+                <h1 class="text-2xl font-bold mr-3">
+                  {{ user.nickname || "未設置暱稱" }}
+                </h1>
+                <div
+                  :class="[
+                    'px-2 py-1 rounded-full text-white text-xs font-bold flex items-center',
+                    user.level === 1
+                      ? 'bg-gray-500'
+                      : user.level === 2
+                        ? 'bg-gray-300'
+                        : user.level === 3
+                          ? 'bg-amber-400'
+                          : user.level === 4
+                            ? 'bg-blue-400'
+                            : 'bg-gradient-to-r from-purple-600 to-pink-600',
+                  ]"
+                >
+                  <span v-if="user.level >= 3" class="mr-1">
+                    <component
+                      :is="
+                        user.level === 3
+                          ? Star
+                          : user.level === 4
+                            ? Award
+                            : Crown
+                      "
+                      class="h-3 w-3"
+                    />
+                  </span>
+                  LV {{ user.level }}
+                </div>
+              </div>
               <p class="text-gray-500" v-if="user.email">{{ user.email }}</p>
             </div>
             <div class="mt-4">
@@ -78,9 +129,41 @@
               <p class="text-2xl font-bold">{{ user.help_count || 0 }}</p>
               <p class="text-gray-500 text-sm">已幫助他人</p>
             </div>
-            <div class="text-center">
+            <div class="text-center relative">
               <p class="text-2xl font-bold">{{ user.points || 0 }}</p>
               <p class="text-gray-500 text-sm">積分</p>
+              <div
+                :class="[
+                  'absolute top-0 -right-3 transform translate-x-full px-2 py-1 rounded-md text-white text-xs font-bold',
+                  user.level === 1
+                    ? 'bg-gray-500'
+                    : user.level === 2
+                      ? 'bg-gray-300 animate-pulse'
+                      : user.level === 3
+                        ? 'bg-amber-400 animate-pulse'
+                        : user.level === 4
+                          ? 'bg-blue-400 animate-pulse shadow-lg'
+                          : 'bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse shadow-lg',
+                ]"
+              >
+                LV {{ user.level }}
+              </div>
+              <div
+                :class="[
+                  'mt-1 text-xs font-medium',
+                  user.level === 1
+                    ? 'text-gray-600'
+                    : user.level === 2
+                      ? 'text-gray-500'
+                      : user.level === 3
+                        ? 'text-amber-500 font-semibold'
+                        : user.level === 4
+                          ? 'text-blue-600 font-semibold'
+                          : 'text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-bold',
+                ]"
+              >
+                {{ user.levelTitle }}
+              </div>
             </div>
           </div>
         </div>
@@ -243,6 +326,9 @@ import {
   LogOut,
   ChevronRight,
   CalendarClock,
+  Star,
+  Award,
+  Crown,
 } from "lucide-vue-next";
 
 const router = useRouter();
@@ -275,6 +361,35 @@ const user = ref({
   help_count: 0,
 });
 
+// 計算積分和等級
+const calculatePointsAndLevel = (user) => {
+  // 計算總積分：物品5分，食物5分，幫助他人10分
+  const points =
+    (user.upload_items_count || 0) * 5 +
+    (user.upload_foods_count || 0) * 5 +
+    (user.help_count || 0) * 10;
+
+  // 根據積分決定等級
+  let level = 1;
+  let levelTitle = "青銅分享者";
+
+  if (points > 200) {
+    level = 5;
+    levelTitle = "璀璨分享者";
+  } else if (points > 150) {
+    level = 4;
+    levelTitle = "鑽石分享者";
+  } else if (points > 100) {
+    level = 3;
+    levelTitle = "黃金分享者";
+  } else if (points > 50) {
+    level = 2;
+    levelTitle = "白銀分享者";
+  }
+
+  return { points, level, levelTitle };
+};
+
 const loading = ref(true);
 const error = ref(null);
 
@@ -303,11 +418,18 @@ const fetchUserInfo = async () => {
         },
       }
     );
-
     const data = await response.json();
 
     if (response.ok) {
-      user.value = data.dataValues || data;
+      const userData = data.dataValues || data;
+      // 計算積分和等級
+      const { points, level, levelTitle } = calculatePointsAndLevel(userData);
+      user.value = {
+        ...userData,
+        points,
+        level,
+        levelTitle,
+      };
       console.log("User info:", user.value);
     } else {
       error.value = data.message || "獲取用戶資料失敗";
@@ -328,3 +450,91 @@ const logout = () => {
   router.push("/");
 };
 </script>
+
+<style scoped>
+/* 黃金等級的星星背景 */
+.bg-yellow-stars {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L55 35 L90 35 L63 57 L72 92 L50 72 L28 92 L37 57 L10 35 L45 35 Z' fill='%23FFD700' fill-opacity='0.3'/%3E%3C/svg%3E");
+  background-size: 60px 60px;
+  animation: starsAnimate 30s linear infinite;
+}
+
+/* 鑽石等級的鑽石背景 */
+.bg-diamond-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0 L60 30 L30 60 L0 30 Z' fill='%23B9F2FF' fill-opacity='0.3'/%3E%3C/svg%3E");
+  background-size: 50px 50px;
+  animation: diamondAnimate 20s linear infinite;
+}
+
+/* 璀璨等級的粒子特效 */
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle,
+      transparent 20%,
+      black 20%,
+      black 80%,
+      transparent 80%,
+      transparent
+    ),
+    radial-gradient(
+        circle,
+        transparent 20%,
+        black 20%,
+        black 80%,
+        transparent 80%,
+        transparent
+      )
+      25px 25px,
+    linear-gradient(#ffffff 2px, transparent 2px) 0 -1px,
+    linear-gradient(90deg, #ffffff 2px, transparent 2px) -1px 0;
+  background-size:
+    50px 50px,
+    50px 50px,
+    25px 25px,
+    25px 25px;
+  animation: starryBackground 10s linear infinite;
+  opacity: 0.1;
+}
+
+@keyframes starsAnimate {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 100px 100px;
+  }
+}
+
+@keyframes diamondAnimate {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 100px 100px;
+  }
+}
+
+@keyframes starryBackground {
+  0% {
+    background-position:
+      0 0,
+      25px 25px,
+      0 0,
+      0 0;
+  }
+  100% {
+    background-position:
+      50px 50px,
+      75px 75px,
+      25px 25px,
+      25px 25px;
+  }
+}
+</style>
