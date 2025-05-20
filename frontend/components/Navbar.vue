@@ -66,7 +66,7 @@
               >
                 <img
                   v-if="authStore.user?.avatar_url"
-                  :src="authStore.user.avatar_url"
+                  :src="formatImageUrl(authStore.user.avatar_url)"
                   alt="用戶頭像"
                   class="w-full h-full object-cover"
                 />
@@ -202,7 +202,7 @@
               >
                 <img
                   v-if="authStore.user?.avatar_url"
-                  :src="authStore.user.avatar_url"
+                  :src="formatImageUrl(authStore.user.avatar_url)"
                   alt="用戶頭像"
                   class="w-full h-full object-cover"
                 />
@@ -302,12 +302,26 @@ import {
 import { useAuthStore } from "~/stores/auth";
 
 const router = useRouter();
+const config = useRuntimeConfig();
 const authStore = useAuthStore();
 const isMenuOpen = ref(false);
 const showLogoutConfirm = ref(false);
 const isAuthenticated = ref(false);
 const showUserMenu = ref(false);
 const userMenuRef = ref(null);
+
+// 格式化圖片URL
+const formatImageUrl = (url) => {
+  if (!url) return null;
+
+  // 如果已經是完整URL，直接返回
+  if (url.startsWith("http")) {
+    return url;
+  }
+
+  // 否則拼接後端base URL
+  return `${config.public.BACKEND_BASE_URL}${url}`;
+};
 
 // 點擊外部關閉用戶選單
 if (process.client) {
