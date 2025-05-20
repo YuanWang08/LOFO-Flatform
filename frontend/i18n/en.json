@@ -1,0 +1,39 @@
+{
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "displayMode": "Display Mode",
+      "lightDark": "Choose light or dark mode",
+      "light": "Light Mode",
+      "dark": "Dark Mode"
+    },
+    "language": {
+      "title": "Language",
+      "selectLanguage": "Select Language",
+      "chinese": "Traditional Chinese",
+      "english": "English",
+      "japanese": "Japanese"
+    },
+    "saveButton": "Save Changes",
+    "saveSuccess": "Settings saved!"
+  },
+  "nav": {
+    "map": "Map",
+    "items": "Lost Items",
+    "foods": "Food Sharing",
+    "notifications": "Notifications",
+    "messages": "Messages",
+    "login": "Login",
+    "activities": "My Activities",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "logoutConfirm": {
+      "title": "Confirm Logout",
+      "message": "Are you sure you want to logout?",
+      "cancel": "Cancel",
+      "confirm": "Confirm Logout"
+    }
+  }
+}

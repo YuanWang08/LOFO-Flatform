@@ -1,0 +1,39 @@
+{
+  "settings": {
+    "title": "設定",
+    "appearance": {
+      "title": "外觀",
+      "displayMode": "顯示模式",
+      "lightDark": "選擇明亮或黑暗模式",
+      "light": "明亮模式",
+      "dark": "黑暗模式"
+    },
+    "language": {
+      "title": "語言",
+      "selectLanguage": "選擇語言",
+      "chinese": "繁體中文",
+      "english": "English",
+      "japanese": "日本語"
+    },
+    "saveButton": "儲存變更",
+    "saveSuccess": "設定已儲存！"
+  },
+  "nav": {
+    "map": "地圖",
+    "items": "遺失物",
+    "foods": "食物分享",
+    "notifications": "通知",
+    "messages": "訊息",
+    "login": "登入",
+    "activities": "我的活動",
+    "profile": "個人資料",
+    "settings": "設定",
+    "logout": "登出",
+    "logoutConfirm": {
+      "title": "確認登出",
+      "message": "您確定要登出嗎？",
+      "cancel": "取消",
+      "confirm": "確認登出"
+    }
+  }
+}
