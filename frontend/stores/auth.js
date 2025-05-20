@@ -4,7 +4,6 @@ export const useAuthStore = defineStore("auth", {
     isAuthenticated: false,
     user: null,
   }),
-
   actions: {
     checkAuth() {
       const authCookie = useCookie("auth_token");
@@ -35,6 +34,12 @@ export const useAuthStore = defineStore("auth", {
         }
       } catch (error) {
         console.error("Failed to fetch user info:", error);
+      }
+    },
+
+    updateUserInfo(userData) {
+      if (this.user) {
+        this.user = { ...this.user, ...userData };
       }
     },
 
