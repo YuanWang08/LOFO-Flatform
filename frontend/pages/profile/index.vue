@@ -35,7 +35,7 @@
                   class="w-32 h-32 rounded-full border-4 border-white overflow-hidden bg-gray-200"
                 >
                   <img
-                    :src="user.avatar_url"
+                    :src="formatImageUrl(user.avatar_url)"
                     alt="用戶頭像"
                     class="w-full h-full object-cover"
                   />
@@ -248,6 +248,19 @@ import {
 const router = useRouter();
 const config = useRuntimeConfig();
 const authStore = useAuthStore();
+
+// 格式化圖片URL
+const formatImageUrl = (url) => {
+  if (!url) return "/placeholder.svg?height=200&width=300";
+
+  // 如果已經是完整URL，直接返回
+  if (url.startsWith("http")) {
+    return url;
+  }
+
+  // 否則拼接後端base URL
+  return `${config.public.BACKEND_BASE_URL}${url}`;
+};
 
 // 初始化用戶資料
 const user = ref({
