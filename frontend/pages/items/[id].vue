@@ -300,13 +300,22 @@
             <button
               @click="handleSendMessage"
               :disabled="
-                isSending || !message.trim() || item.status !== 'active'
+                isSending ||
+                item.status !== 'active' ||
+                item.created_by === currentUserId
               "
               class="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div v-if="isSending" class="flex items-center justify-center">
                 <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                 發送中...
+              </div>
+              <div
+                v-else-if="item.created_by === currentUserId"
+                class="flex items-center justify-center"
+              >
+                <XCircle class="mr-2 h-4 w-4" />
+                這是您發布的物品
               </div>
               <div
                 v-else-if="item.status !== 'active'"
@@ -325,12 +334,23 @@
             <button
               v-if="!item.is_with_owner"
               @click="handleClaimItem"
-              :disabled="isClaiming || item.status !== 'active'"
+              :disabled="
+                isClaiming ||
+                item.status !== 'active' ||
+                item.created_by === currentUserId
+              "
               class="w-full px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               <div v-if="isClaiming" class="flex items-center justify-center">
                 <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                 處理中...
+              </div>
+              <div
+                v-else-if="item.created_by === currentUserId"
+                class="flex items-center justify-center"
+              >
+                <XCircle class="mr-2 h-4 w-4" />
+                這是您發布的物品
               </div>
               <div
                 v-else-if="item.status !== 'active'"
@@ -341,7 +361,7 @@
               </div>
               <div v-else class="flex items-center justify-center">
                 <Hand class="mr-2 h-4 w-4" />
-                這是我的，我已拾回
+                這是我的，我要認領
               </div>
             </button>
           </div>
@@ -489,6 +509,7 @@ const item = ref(null);
 const activeImageIndex = ref(0);
 const activeTab = ref("details");
 const message = ref("");
+const currentUserId = authStore.user ? authStore.user.user_id : null;
 const isSending = ref(false);
 const isReporting = ref(false);
 const isMarkingFound = ref(false);

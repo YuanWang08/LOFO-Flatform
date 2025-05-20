@@ -302,13 +302,22 @@
             <button
               @click="handleSendMessage"
               :disabled="
-                isSending || !message.trim() || food.status !== 'active'
+                isSending ||
+                food.status !== 'active' ||
+                food.created_by === currentUserId
               "
-              class="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              class="w-full px-4 py-2 mb-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div v-if="isSending" class="flex items-center justify-center">
                 <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                 發送中...
+              </div>
+              <div
+                v-else-if="food.created_by === currentUserId"
+                class="flex items-center justify-center"
+              >
+                <XCircle class="mr-2 h-4 w-4" />
+                這是您分享的食物
               </div>
               <div
                 v-else-if="food.status !== 'active'"
@@ -530,6 +539,7 @@ const food = ref(null);
 const activeImageIndex = ref(0);
 const activeTab = ref("details");
 const message = ref("");
+const currentUserId = authStore.user ? authStore.user.user_id : null;
 const isSending = ref(false);
 const isReporting = ref(false);
 const isReserving = ref(false);
