@@ -110,6 +110,8 @@ const sendDiscordNotification = async (webhook, content) => {
   try {
     await axios.post(webhook, {
       content: content,
+      avatar_url: "https://i.meee.com.tw/tfkgpgK.png",
+      username: "LOFO-遺失物與食物分享通知", // 可選：自訂發送者名稱
     });
     return true;
   } catch (error) {
