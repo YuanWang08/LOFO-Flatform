@@ -60,7 +60,7 @@ module.exports = (sequelize) => {
       enabled_discord_notifacation: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: false,
+        defaultValue: true,
       },
       enable_email_notifacation: {
         type: DataTypes.BOOLEAN,
