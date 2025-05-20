@@ -458,6 +458,7 @@ import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useHead } from "#imports";
 import { useAuthStore } from "~/stores/auth";
+import Swal from "sweetalert2";
 import {
   MapPin,
   AlarmClock,
@@ -758,11 +759,21 @@ const handleSendMessage = async () => {
         query: { id: chatData.data.chatroom_id },
       });
     } else {
-      alert("創建聊天室失敗，請稍後再試");
+      Swal.fire({
+        icon: "error",
+        title: "發送失敗",
+        text: "創建聊天室失敗，請稍後再試",
+        confirmButtonColor: "#10b981",
+      });
     }
   } catch (error) {
     console.error("發送訊息失敗:", error);
-    alert("發送訊息失敗，請稍後再試");
+    Swal.fire({
+      icon: "error",
+      title: "發送失敗",
+      text: "發送訊息失敗，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
   } finally {
     isSending.value = false;
     message.value = "";
@@ -772,11 +783,15 @@ const handleSendMessage = async () => {
 // 舉報食物
 const handleReport = () => {
   isReporting.value = true;
-
   // 模擬 API 請求
   setTimeout(() => {
     isReporting.value = false;
-    alert("舉報已提交，我們會盡快審核。");
+    Swal.fire({
+      icon: "success",
+      title: "舉報已提交",
+      text: "我們會盡快審核",
+      confirmButtonColor: "#10b981",
+    });
   }, 1000);
 };
 
@@ -791,7 +806,12 @@ const handleShare = () => {
   } else {
     // 如果瀏覽器不支持原生分享 API，則複製連結
     navigator.clipboard.writeText(window.location.href);
-    alert("連結已複製到剪貼簿！");
+    Swal.fire({
+      icon: "success",
+      title: "連結已複製",
+      text: "連結已複製到剪貼簿！",
+      confirmButtonColor: "#10b981",
+    });
   }
 };
 
@@ -801,7 +821,12 @@ const handleReservation = async () => {
     reservationQuantity.value <= 0 ||
     reservationQuantity.value > food.value.quantity - reservedQuantity.value
   ) {
-    alert("請輸入有效的預約份數");
+    Swal.fire({
+      icon: "warning",
+      title: "無效的份數",
+      text: "請輸入有效的預約份數",
+      confirmButtonColor: "#10b981",
+    });
     return;
   }
 
@@ -825,21 +850,35 @@ const handleReservation = async () => {
         }),
       }
     );
-
     const data = await response.json();
 
     if (data.success) {
-      alert("預約成功！請等待食物分享者的確認。");
+      Swal.fire({
+        icon: "success",
+        title: "預約成功",
+        text: "預約成功！請等待食物分享者的確認。",
+        confirmButtonColor: "#10b981",
+      });
       // 更新預約狀態和數量
       fetchReservations();
       // 如果需要的話也可以重新獲取食物信息
       // fetchFoodData();
     } else {
-      alert(`預約失敗: ${data.message}`);
+      Swal.fire({
+        icon: "error",
+        title: "預約失敗",
+        text: `預約失敗: ${data.message}`,
+        confirmButtonColor: "#10b981",
+      });
     }
   } catch (error) {
     console.error("預約食物時發生錯誤:", error);
-    alert("預約食物時發生錯誤，請稍後再試。");
+    Swal.fire({
+      icon: "error",
+      title: "預約失敗",
+      text: "預約食物時發生錯誤，請稍後再試。",
+      confirmButtonColor: "#10b981",
+    });
   } finally {
     isReserving.value = false;
   }

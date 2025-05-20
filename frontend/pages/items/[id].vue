@@ -438,6 +438,7 @@ import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useHead } from "#imports";
 import { useAuthStore } from "~/stores/auth";
+import Swal from "sweetalert2";
 import {
   MapPin,
   Calendar,
@@ -678,11 +679,21 @@ const handleSendMessage = async () => {
         query: { id: chatData.data.chatroom_id },
       });
     } else {
-      alert("創建聊天室失敗，請稍後再試");
+      Swal.fire({
+        icon: "error",
+        title: "發送失敗",
+        text: "創建聊天室失敗，請稍後再試",
+        confirmButtonColor: "#10b981",
+      });
     }
   } catch (error) {
     console.error("發送訊息失敗:", error);
-    alert("發送訊息失敗，請稍後再試");
+    Swal.fire({
+      icon: "error",
+      title: "發送失敗",
+      text: "發送訊息失敗，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
   } finally {
     isSending.value = false;
     message.value = "";
@@ -692,22 +703,30 @@ const handleSendMessage = async () => {
 // 舉報物品
 const handleReport = () => {
   isReporting.value = true;
-
   // 模擬 API 請求
   setTimeout(() => {
     isReporting.value = false;
-    alert("舉報已提交，我們會盡快審核。");
+    Swal.fire({
+      icon: "success",
+      title: "舉報已提交",
+      text: "我們會盡快審核",
+      confirmButtonColor: "#10b981",
+    });
   }, 1000);
 };
 
 // 標記為已找回
 const handleMarkAsFound = () => {
   isMarkingFound.value = true;
-
   // 模擬 API 請求
   setTimeout(() => {
     isMarkingFound.value = false;
-    alert("物品已標記為已找回！");
+    Swal.fire({
+      icon: "success",
+      title: "成功",
+      text: "物品已標記為已找回！",
+      confirmButtonColor: "#10b981",
+    });
     // 在實際應用中，這裡應該更新物品狀態，可以繼續透過 API 更新
     fetchItemData(); // 重新獲取物品數據以顯示更新後的狀態
   }, 1000);
@@ -724,7 +743,12 @@ const handleShare = () => {
   } else {
     // 如果瀏覽器不支持原生分享 API，則複製連結
     navigator.clipboard.writeText(window.location.href);
-    alert("連結已複製到剪貼簿！");
+    Swal.fire({
+      icon: "success",
+      title: "連結已複製",
+      text: "連結已複製到剪貼簿！",
+      confirmButtonColor: "#10b981",
+    });
   }
 };
 
@@ -747,18 +771,32 @@ const handleClaimItem = async () => {
         },
       }
     );
-
     const data = await response.json();
 
     if (data.success) {
-      alert("物品認領成功，將為您聯繫物品拾獲者！");
+      Swal.fire({
+        icon: "success",
+        title: "認領成功",
+        text: "物品認領成功，將為您聯繫物品拾獲者！",
+        confirmButtonColor: "#10b981",
+      });
       fetchItemData(); // 重新獲取物品數據以顯示更新後的狀態
     } else {
-      alert(`認領失敗: ${data.message}`);
+      Swal.fire({
+        icon: "error",
+        title: "認領失敗",
+        text: `認領失敗: ${data.message}`,
+        confirmButtonColor: "#10b981",
+      });
     }
   } catch (error) {
     console.error("認領物品時發生錯誤:", error);
-    alert("認領物品時發生錯誤，請稍後再試。");
+    Swal.fire({
+      icon: "error",
+      title: "認領失敗",
+      text: "認領物品時發生錯誤，請稍後再試。",
+      confirmButtonColor: "#10b981",
+    });
   } finally {
     isClaiming.value = false;
   }
