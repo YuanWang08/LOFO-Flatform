@@ -306,6 +306,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Upload, MapPin, Loader2, Package, Utensils, X } from "lucide-vue-next";
+import Swal from "sweetalert2";
 
 const route = useRoute();
 const router = useRouter();
@@ -396,7 +397,12 @@ const handleSubmit = async () => {
     const authCookie = useCookie("auth_token");
 
     if (!authCookie.value) {
-      alert("您需要先登入才能提交食物分享資訊");
+      Swal.fire({
+        icon: "warning",
+        title: "需要登入",
+        text: "您需要先登入才能提交食物分享資訊",
+        confirmButtonColor: "#10b981",
+      });
       router.push("/login");
       return;
     }
@@ -434,19 +440,28 @@ const handleSubmit = async () => {
     if (!response.ok) {
       throw new Error("伺服器回應錯誤");
     }
-
     const result = await response.json();
     console.log("提交成功:", result);
 
     isSubmitting.value = false;
-    alert("食物分享已成功登記！");
+    Swal.fire({
+      icon: "success",
+      title: "成功",
+      text: "食物分享已成功登記！",
+      confirmButtonColor: "#10b981",
+    });
 
     // 提交成功後導航到食物頁面
     router.push("/foods");
   } catch (error) {
     console.error("提交失敗:", error);
     isSubmitting.value = false;
-    alert("提交失敗，請稍後再試");
+    Swal.fire({
+      icon: "error",
+      title: "提交失敗",
+      text: "提交失敗，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
   }
 };
 </script>

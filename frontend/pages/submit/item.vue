@@ -367,6 +367,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useRuntimeConfig, useCookie } from "#app";
+import Swal from "sweetalert2";
 import {
   Upload,
   MapPin,
@@ -493,7 +494,12 @@ const handleSubmit = async () => {
     const authCookie = useCookie("auth_token");
 
     if (!authCookie.value) {
-      alert("您需要先登入才能提交物品信息");
+      Swal.fire({
+        icon: "warning",
+        title: "需要登入",
+        text: "您需要先登入才能提交物品信息",
+        confirmButtonColor: "#10b981",
+      });
       router.push("/login");
       return;
     }
@@ -531,19 +537,28 @@ const handleSubmit = async () => {
     if (!response.ok) {
       throw new Error("伺服器回應錯誤");
     }
-
     const result = await response.json();
     console.log("提交成功:", result);
 
     isSubmitting.value = false;
-    alert("物品已成功登記！");
+    Swal.fire({
+      icon: "success",
+      title: "成功",
+      text: "物品已成功登記！",
+      confirmButtonColor: "#10b981",
+    });
 
     // 提交成功後導航到物品清單頁面(之後導向/activities)
     router.push("/items");
   } catch (error) {
     console.error("提交失敗:", error);
     isSubmitting.value = false;
-    alert("提交失敗，請稍後再試");
+    Swal.fire({
+      icon: "error",
+      title: "提交失敗",
+      text: "提交失敗，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
   }
 };
 </script>
