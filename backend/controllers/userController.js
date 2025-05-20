@@ -397,3 +397,49 @@ exports.updatePassword = async (req, res) => {
     });
   }
 };
+
+// 簡易更新密碼（不需要驗證舊密碼）
+exports.simpleUpdatePassword = async (req, res) => {
+  try {
+    const userId = req.id;
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "新密碼為必填欄位",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "新密碼長度必須至少為 8 個字元",
+      });
+    }
+
+    // 獲取用戶資訊
+    const user = await UserCrud.findUserById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "用戶不存在",
+      });
+    }
+
+    // 更新密碼，不需要驗證舊密碼
+    await UserCrud.updatePassword(userId, newPassword);
+
+    return res.status(200).json({
+      success: true,
+      message: "密碼已成功更新",
+    });
+  } catch (error) {
+    console.error("更新密碼失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法更新密碼",
+      error: error.message,
+    });
+  }
+};

@@ -28,6 +28,13 @@ router.post("/confirm-reset", userCtrl.confirmResetPassword);
 // 已登入用戶更新密碼
 router.put("/password", authmid.authRequired(), userCtrl.updatePassword);
 
+// 已登入用戶簡易更新密碼（不需要驗證舊密碼）
+router.put(
+  "/simple-password",
+  authmid.authRequired(),
+  userCtrl.simpleUpdatePassword
+);
+
 // 更新用戶資訊
 router.put("/update", authmid.authRequired(), userCtrl.updateUserInfo);
 
