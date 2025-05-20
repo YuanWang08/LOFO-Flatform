@@ -19,3 +19,12 @@ About database, run "docker-compose up -d", or you can change the .env to link t
 151-200：Level 4 鑽石分享者
 201 以上：Level 5 璀璨分享者
 將等級顯示在積分的旁邊，並且越高級有越帥的特效
+
+代辦，做完收工
+完成 /settings & navbar 的三語
+/foods/:id & /items/:id 底下的相似物品
+discord 通知
+通知設置
+地圖上傳防呆
+認領防呆
+/message UI、移除自己
