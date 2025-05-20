@@ -60,10 +60,10 @@ module.exports = (sequelize) => {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   });
-
   // 安全地處理其他模型關聯
   const {
     foods,
+    food_claims,
     chatrooms,
     chatroom_participants,
     messages,
@@ -90,6 +90,41 @@ module.exports = (sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     });
+
+    // ======= foods 和 food_claims 的關聯 (如果 food_claims 模型存在) =======
+    if (food_claims) {
+      // 一個食物可以有多個認領申請
+      foods.hasMany(food_claims, {
+        foreignKey: "food_id",
+        as: "foodClaims",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+
+      // 每個認領申請都對應一個食物
+      food_claims.belongsTo(foods, {
+        foreignKey: "food_id",
+        as: "food",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+
+      // 一個使用者可以提出多個食物認領申請
+      users.hasMany(food_claims, {
+        foreignKey: "claimed_by",
+        as: "foodClaims",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+
+      // 每個食物認領申請都屬於一個使用者
+      food_claims.belongsTo(users, {
+        foreignKey: "claimed_by",
+        as: "claimer",
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+      });
+    }
 
     // ======= foods 和 reservations 的關聯 (如果 reservations 模型存在) =======
     if (reservations) {

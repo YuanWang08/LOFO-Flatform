@@ -12,6 +12,7 @@ const reportsModel = require("../models/reports.model");
 const reservationsModel = require("../models/reservations.model");
 const userPointLogModel = require("../models/user_point_log.model");
 const foodsModel = require("../models/foods.model");
+const foodClaimsModel = require("../models/food_claims.model");
 
 const modelAssociationSetup = require("../models/modelsAssociationSetup");
 
@@ -36,6 +37,7 @@ const modelDefiners = [
   reservationsModel,
   userPointLogModel,
   foodsModel,
+  foodClaimsModel,
 ];
 
 for (const modelDefiner of modelDefiners) {
