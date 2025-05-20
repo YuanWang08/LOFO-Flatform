@@ -457,3 +457,26 @@ exports.markAsSelfPickedUp = async (req, res) => {
     });
   }
 };
+
+// 獲取相似食物
+exports.getSimilarFoods = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 獲取相似食物
+    const similarFoods = await FoodCrud.getSimilarFoods(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "獲取相似食物成功",
+      data: similarFoods,
+    });
+  } catch (error) {
+    console.error("獲取相似食物失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法獲取相似食物",
+      error: error.message,
+    });
+  }
+};

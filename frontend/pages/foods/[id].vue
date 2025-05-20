@@ -210,13 +210,13 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <NuxtLink
               v-for="similarFood in similarFoods"
-              :key="similarFood.id"
-              :to="`/foods/${similarFood.id}`"
+              :key="similarFood.food_id"
+              :to="`/foods/${similarFood.food_id}`"
               class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div class="relative h-40">
                 <img
-                  :src="similarFood.image"
+                  :src="formatImageUrl(similarFood.image_url)"
                   :alt="similarFood.title"
                   class="w-full h-full object-cover"
                 />
@@ -540,39 +540,8 @@ const mapInitialized = ref(false);
 let foodMap = null;
 let foodMarker = null; // 添加標記變數以便於管理
 
-// 模擬相似食物數據（實際應從API獲取）
-const similarFoods = ref([
-  {
-    id: "3",
-    title: "7-11披薩",
-    description: "7-11剛出爐的披薩，有3片",
-    status: "claimed",
-    quantity: 3,
-    location: "宿舍交誼廳",
-    image:
-      "https://cdn.pixabay.com/photo/2016/12/26/17/28/food-1932466_1280.jpg",
-  },
-  {
-    id: "4",
-    title: "桂格麥片",
-    description: "超大包桂格燕麥片，還有3/4",
-    status: "active",
-    quantity: 1,
-    location: "研究生宿舍一樓",
-    image:
-      "https://cdn.pixabay.com/photo/2016/12/26/17/28/food-1932466_1280.jpg",
-  },
-  {
-    id: "5",
-    title: "水果拼盤",
-    description: "派對剩下的新鮮水果拼盤，有葡萄、蘋果和香蕉",
-    status: "expired",
-    quantity: 1,
-    location: "學生活動中心",
-    image:
-      "https://cdn.pixabay.com/photo/2016/12/26/17/28/food-1932466_1280.jpg",
-  },
-]);
+// 相似食物數據
+const similarFoods = ref([]);
 
 // 計算屬性
 const images = computed(() => {
@@ -635,6 +604,8 @@ const fetchFoodData = async () => {
       food.value = data.data;
       // 計算已預約的份數
       fetchReservations();
+      // 獲取相似食物
+      fetchSimilarFoods();
       console.log("獲取食物詳情成功:", food.value);
     } else {
       console.error("獲取食物詳情失敗:", data.message);
@@ -645,6 +616,27 @@ const fetchFoodData = async () => {
     food.value = null;
   } finally {
     loading.value = false;
+  }
+};
+
+// 獲取相似食物
+const fetchSimilarFoods = async () => {
+  try {
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/foods/${id}/similar`
+    );
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      similarFoods.value = data.data;
+      console.log("獲取相似食物成功:", similarFoods.value);
+    } else {
+      console.error("獲取相似食物失敗:", data.message);
+      similarFoods.value = [];
+    }
+  } catch (error) {
+    console.error("API請求失敗:", error);
+    similarFoods.value = [];
   }
 };
 

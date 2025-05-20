@@ -61,4 +61,7 @@ router.post(
   foodCtrl.markAsSelfPickedUp
 );
 
+// GET /api/foods/:id/similar - 獲取相似食物
+router.get("/:id/similar", foodCtrl.getSimilarFoods);
+
 module.exports = router;

@@ -359,3 +359,27 @@ exports.markAsSelfPickedUp = async (foodId, userId) => {
     throw error;
   }
 };
+
+exports.getSimilarFoods = async (foodId) => {
+  try {
+    const food = await Food.findByPk(foodId);
+
+    if (!food) {
+      throw new Error("食物不存在");
+    }
+
+    const similarFoods = await Food.findAll({
+      where: {
+        category: food.category,
+        // food_id: { [sequelize.Op.ne]: foodId }, // 排除當前食物
+      },
+      limit: 3,
+      order: [["createdAt", "DESC"]],
+    });
+
+    return similarFoods;
+  } catch (error) {
+    console.error("獲取相似食物失敗:", error);
+    throw error;
+  }
+};
