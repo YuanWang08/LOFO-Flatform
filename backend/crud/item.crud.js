@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const {
   models: { items: Item, users: User, item_claims: ItemClaim },
 } = require("../config/sequelize");
@@ -185,7 +186,7 @@ exports.getSimilarItems = async (itemId) => {
     const similarItems = await Item.findAll({
       where: {
         category: item.category,
-        // item_id: { [sequelize.Op.ne]: itemId },
+        item_id: { [Op.ne]: itemId },
       },
       limit: 3,
     });

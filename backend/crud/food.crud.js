@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const {
   models: {
     foods: Food,
@@ -371,7 +372,7 @@ exports.getSimilarFoods = async (foodId) => {
     const similarFoods = await Food.findAll({
       where: {
         category: food.category,
-        // food_id: { [sequelize.Op.ne]: foodId }, // 排除當前食物
+        food_id: { [Op.ne]: foodId }, // 使用正確的 Op 寫法
       },
       limit: 3,
       order: [["createdAt", "DESC"]],
