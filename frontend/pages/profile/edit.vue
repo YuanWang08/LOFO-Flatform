@@ -227,6 +227,7 @@ import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useRuntimeConfig, useCookie } from "#app";
 import { useAuthStore } from "~/stores/auth";
+import Swal from "sweetalert2";
 
 const router = useRouter();
 const config = useRuntimeConfig();
@@ -319,16 +320,25 @@ const openFileInput = () => {
 const handleFileUpload = async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-
   // 檢查檔案類型和大小
   if (!file.type.match("image.*")) {
-    alert("請上傳圖片檔案");
+    Swal.fire({
+      icon: "error",
+      title: "格式錯誤",
+      text: "請上傳圖片檔案",
+      confirmButtonColor: "#10b981",
+    });
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
     // 5MB 限制
-    alert("檔案大小不能超過 5MB");
+    Swal.fire({
+      icon: "error",
+      title: "檔案過大",
+      text: "檔案大小不能超過 5MB",
+      confirmButtonColor: "#10b981",
+    });
     return;
   }
 
@@ -353,7 +363,6 @@ const handleFileUpload = async (event) => {
         body: formData,
       }
     );
-
     const data = await response.json();
     if (response.ok) {
       console.log("頭像上傳成功:", data);
@@ -366,11 +375,21 @@ const handleFileUpload = async (event) => {
         });
       }
     } else {
-      alert(data.message || "頭像上傳失敗");
+      Swal.fire({
+        icon: "error",
+        title: "上傳失敗",
+        text: data.message || "頭像上傳失敗",
+        confirmButtonColor: "#10b981",
+      });
       console.error("頭像上傳失敗:", data);
     }
   } catch (error) {
-    alert("頭像上傳失敗，請稍後再試");
+    Swal.fire({
+      icon: "error",
+      title: "上傳失敗",
+      text: "頭像上傳失敗，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
     console.error("頭像上傳錯誤:", error);
   }
 };
@@ -405,10 +424,14 @@ const saveProfile = async () => {
         body: JSON.stringify(userData),
       }
     );
-
     const data = await response.json();
     if (response.ok) {
-      alert("個人資料更新成功!");
+      Swal.fire({
+        icon: "success",
+        title: "成功",
+        text: "個人資料更新成功!",
+        confirmButtonColor: "#10b981",
+      });
       console.log("個人資料更新成功:", data);
 
       // 更新 authStore 中的用戶資訊
@@ -419,11 +442,21 @@ const saveProfile = async () => {
         description: form.bio,
       });
     } else {
-      alert(data.message || "更新失敗，請稍後再試");
+      Swal.fire({
+        icon: "error",
+        title: "更新失敗",
+        text: data.message || "更新失敗，請稍後再試",
+        confirmButtonColor: "#10b981",
+      });
       console.error("更新失敗:", data);
     }
   } catch (err) {
-    alert("更新失敗，請稍後再試");
+    Swal.fire({
+      icon: "error",
+      title: "更新失敗",
+      text: "更新失敗，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
     console.error("Error updating profile:", err);
   } finally {
     isSaving.value = false;
