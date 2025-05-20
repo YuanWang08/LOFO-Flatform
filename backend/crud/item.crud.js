@@ -174,3 +174,25 @@ exports.updateItem = async (itemId, updateData) => {
     throw error;
   }
 };
+
+exports.getSimilarItems = async (itemId) => {
+  try {
+    const item = await Item.findByPk(itemId);
+    if (!item) {
+      throw new Error("物品不存在");
+    }
+
+    const similarItems = await Item.findAll({
+      where: {
+        category: item.category,
+        // item_id: { [sequelize.Op.ne]: itemId },
+      },
+      limit: 3,
+    });
+
+    return similarItems;
+  } catch (error) {
+    console.error("獲取相似物品失敗:", error);
+    throw error;
+  }
+};

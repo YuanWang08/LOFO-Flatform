@@ -34,4 +34,7 @@ router.post("/:id/claim", authMid.authRequired(), itemCtrl.claimItem);
 // PUT /api/items/:id - 更新物品資訊
 router.put("/:id", authMid.authRequired(), itemCtrl.updateItem);
 
+// GET /api/items/:id/similar - 獲取相似物品
+router.get("/:id/similar", itemCtrl.getSimilarItems);
+
 module.exports = router;

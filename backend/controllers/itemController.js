@@ -268,3 +268,30 @@ exports.updateItem = async (req, res) => {
     });
   }
 };
+
+exports.getSimilarItems = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const items = await ItemCrud.getSimilarItems(id);
+
+    if (!items || items.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "找不到相似物品",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "獲取相似物品成功",
+      data: items,
+    });
+  } catch (error) {
+    console.error("獲取相似物品失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法獲取相似物品",
+      error: error.message,
+    });
+  }
+};

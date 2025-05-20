@@ -202,13 +202,13 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <NuxtLink
               v-for="similarItem in similarItems"
-              :key="similarItem.id"
-              :to="`/items/${similarItem.id}`"
+              :key="similarItem.item_id"
+              :to="`/items/${similarItem.item_id}`"
               class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div class="relative h-40">
                 <img
-                  :src="similarItem.image"
+                  :src="formatImageUrl(similarItem.image_url)"
                   :alt="similarItem.title"
                   class="w-full h-full object-cover"
                 />
@@ -497,36 +497,8 @@ const mapInitialized = ref(false);
 let itemMap = null;
 let itemMarker = null; // 添加標記變數以便於管理
 
-// 模擬相似物品數據（保留）
-const similarItems = ref([
-  {
-    id: "3",
-    title: "藍色水壺",
-    description: "在體育館撿到的藍色保溫水壺",
-    status: "claimed",
-    date: "2023-04-26",
-    location: "體育館",
-    // image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: "4",
-    title: "學生證",
-    description: "在宿舍區遺失的學生證",
-    status: "closed",
-    date: "2023-04-25",
-    location: "宿舍區",
-    // image: "/placeholder.svg?height=200&width=300",
-  },
-  {
-    id: "5",
-    title: "筆記型電腦",
-    description: "在圖書館三樓遺失的筆記型電腦，黑色 MacBook Pro",
-    status: "withdrawn",
-    date: "2023-04-24",
-    location: "圖書館三樓",
-    // image: "/placeholder.svg?height=200&width=300",
-  },
-]);
+// 相似物品數據
+const similarItems = ref([]);
 
 // 計算屬性
 const images = computed(() => {
@@ -591,6 +563,8 @@ const fetchItemData = async () => {
 
     if (data.success && data.data) {
       item.value = data.data;
+      // 獲取相似物品數據
+      fetchSimilarItems();
       console.log("獲取物品詳情成功:", item.value);
     } else {
       console.error("獲取物品詳情失敗:", data.message);
@@ -601,6 +575,27 @@ const fetchItemData = async () => {
     item.value = null;
   } finally {
     loading.value = false;
+  }
+};
+
+// 獲取相似物品
+const fetchSimilarItems = async () => {
+  try {
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/items/${id}/similar`
+    );
+    const data = await response.json();
+
+    if (data.success && data.data) {
+      similarItems.value = data.data;
+      console.log("獲取相似物品成功:", similarItems.value);
+    } else {
+      console.error("獲取相似物品失敗:", data.message);
+      similarItems.value = [];
+    }
+  } catch (error) {
+    console.error("API請求失敗:", error);
+    similarItems.value = [];
   }
 };
 
