@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     public: {
       BACKEND_BASE_URL: process.env.NUXT_PUBLIC_BACKEND_BASE_URL,
       FRONTEND_BASE_URL: process.env.FRONTEND_BASE_URL,
+      SOCKET_URL: process.env.NUXT_PUBLIC_SOCKET_URL || "http://localhost:3000",
     },
   },
 });
