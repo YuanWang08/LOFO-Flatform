@@ -114,6 +114,45 @@ exports.updateUserInfo = async (req, res) => {
   }
 };
 
+exports.getUserPublicInfo = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "用戶ID不能為空",
+      });
+    }
+
+    // 從數據庫獲取用戶信息
+    const user = await UserCrud.findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "用戶不存在",
+      });
+    }
+
+    // 返回公開的用戶信息
+    return res.status(200).json({
+      success: true,
+      data: {
+        user_id: user.user_id,
+        nickname: user.nickname || "用戶",
+        avatar_url: user.avatar_url || null,
+      },
+    });
+  } catch (error) {
+    console.error("獲取用戶公開信息失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "獲取用戶信息失敗",
+    });
+  }
+};
+
 exports.check = async (req, res) => {
   try {
     return res.status(200).json({

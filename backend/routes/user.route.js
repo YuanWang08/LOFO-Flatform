@@ -7,6 +7,7 @@ const userActivitiesCtrl = require("../controllers/userActivitiesController");
 
 router.get("/check", authmid.authRequired(), userCtrl.check);
 router.get("/info", authmid.authRequired(), userCtrl.getUserInfo);
+router.get("/info/:userId", userCtrl.getUserPublicInfo); // 新增：獲取特定用戶的公開資訊
 
 // 獲取用戶發布的物品列表
 router.get("/items", authmid.authRequired(), userActivitiesCtrl.getUserItems);
