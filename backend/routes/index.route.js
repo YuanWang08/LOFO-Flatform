@@ -7,6 +7,7 @@ const userRouter = require("./user.route");
 const foodsRouter = require("./foods.route");
 const chatroomsRouter = require("./chatrooms.route");
 const messagesRouter = require("./messages.route");
+const geminiRouter = require("./gemini.route");
 
 const app = require("../app");
 
@@ -23,5 +24,6 @@ router.use("/user", userRouter);
 router.use("/foods", foodsRouter);
 router.use("/chatrooms", chatroomsRouter);
 router.use("/messages", messagesRouter);
+router.use("/gemini", geminiRouter);
 
 module.exports = router;
