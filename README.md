@@ -28,3 +28,5 @@ discord 通知
 地圖上傳防呆
 認領防呆
 /message UI、移除自己
+
+製作 dummydata script
