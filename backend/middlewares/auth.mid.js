@@ -125,6 +125,13 @@ exports.authRequired =
         });
       }
 
+      // 將用戶信息添加到 req.user 中，讓控制器可以使用
+      req.user = {
+        user_id: user.user_id,
+        username: user.nickname,
+        email: user.email,
+      };
+
       return next();
     } catch (err) {
       if (process.env.ENV === "dev") {
@@ -202,6 +209,8 @@ exports.googleOauth = async (req, res, next) => {
     return next();
   } catch (error) {
     console.error("Google OAuth Error:", error.message);
-    return res.redirect(`${process.env.FRONTEND_BASE_URL}/login?error=google_auth_failed`);
+    return res.redirect(
+      `${process.env.FRONTEND_BASE_URL}/login?error=google_auth_failed`
+    );
   }
 };
