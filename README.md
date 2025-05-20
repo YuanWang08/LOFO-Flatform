@@ -76,3 +76,7 @@ npm run dev
 - PostgreSQL：儲存用戶、事件等關聯性資料
 - MongoDB：儲存對話訊息，保留未來擴展彈性
 - 你可以在 `WebERD.drawio` 中看到此專案大智的 ERD 規劃(未完全相符)
+
+## 未來發展方向
+
+- 持續完成 Notification 通知功能
