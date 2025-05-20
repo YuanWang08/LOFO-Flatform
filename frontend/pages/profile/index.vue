@@ -93,7 +93,7 @@
             <h2 class="text-xl font-semibold">我的遺失物</h2>
           </div>
           <p class="text-gray-600 mb-4">查看您發布的遺失物品和協助找回的物品</p>
-          <NuxtLink to="/profile/items">
+          <NuxtLink to="/activities">
             <button
               class="w-full px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
             >
@@ -108,7 +108,7 @@
             <h2 class="text-xl font-semibold">我的食物分享</h2>
           </div>
           <p class="text-gray-600 mb-4">查看您分享的食物和預約的食物</p>
-          <NuxtLink to="/profile/foods">
+          <NuxtLink to="/activities">
             <button
               class="w-full px-4 py-2 bg-emerald-500 text-white rounded-md hover:bg-emerald-600 transition-colors"
             >
@@ -138,7 +138,7 @@
             <h2 class="text-xl font-semibold">活動記錄</h2>
           </div>
           <p class="text-gray-600 mb-4">查看您在平台上的所有活動歷史記錄</p>
-          <NuxtLink to="/activities">
+          <NuxtLink to="/activities/history">
             <button
               class="w-full px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors"
             >
@@ -312,6 +312,6 @@ const fetchUserInfo = async () => {
 const logout = () => {
   authStore.logout();
   useCookie("auth_token").value = null;
-  router.push("/login");
+  router.push("/");
 };
 </script>
