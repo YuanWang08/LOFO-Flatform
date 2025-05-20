@@ -12,14 +12,23 @@ const db = {
 
 // 格式化時間函數
 const formatDate = (date) => {
-  return date.toLocaleString("zh-TW", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const d = new Date(date);
+  if (isNaN(d.getTime())) {
+    return "無效日期";
+  }
+  try {
+    return d.toLocaleString("zh-TW", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return d.toISOString().replace("T", " ").substring(0, 16);
+  }
 };
 
 // 取得需要發送通知的用戶
@@ -152,15 +161,35 @@ const createNotificationContent = (items, foods) => {
 
 // 設定每天早上7點和下午1點執行的定時任務
 const initializeNotificationScheduler = () => {
-  // 每天早上7點
-  cron.schedule("0 7 * * *", async () => {
-    await sendScheduledNotifications();
-  });
+  try {
+    // 每天早上7點
+    cron.schedule(
+      "0 7 * * *",
+      async () => {
+        console.log("Running morning notification schedule...");
+        await sendScheduledNotifications();
+      },
+      {
+        timezone: "Asia/Taipei",
+      }
+    );
 
-  // 每天下午1點
-  cron.schedule("0 13 * * *", async () => {
-    await sendScheduledNotifications();
-  });
+    // 每天下午1點
+    cron.schedule(
+      "0 13 * * *",
+      async () => {
+        console.log("Running afternoon notification schedule...");
+        await sendScheduledNotifications();
+      },
+      {
+        timezone: "Asia/Taipei",
+      }
+    );
+
+    console.log("Notification scheduler initialized successfully");
+  } catch (error) {
+    console.error("Error initializing notification scheduler:", error);
+  }
 };
 
 // 執行發送通知的主要函數
