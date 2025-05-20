@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authmid = require("../middlewares/auth.mid");
+const uploadMid = require("../middlewares/upload.mid");
 const userCtrl = require("../controllers/userController");
 const userActivitiesCtrl = require("../controllers/userActivitiesController");
 
@@ -37,5 +38,14 @@ router.put(
 
 // 更新用戶資訊
 router.put("/update", authmid.authRequired(), userCtrl.updateUserInfo);
+
+// 上傳用戶頭像
+router.post(
+  "/avatar",
+  authmid.authRequired(),
+  uploadMid.singleAvatar,
+  uploadMid.handleUploadError,
+  userCtrl.uploadAvatar
+);
 
 module.exports = router;

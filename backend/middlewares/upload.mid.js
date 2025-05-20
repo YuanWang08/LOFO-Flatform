@@ -52,9 +52,19 @@ const foodUpload = multer({
   },
 });
 
+// 創建頭像上傳的 multer 實例
+const avatarUpload = multer({
+  storage: createStorage("avatar"),
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 限制上傳大小為 5MB
+  },
+});
+
 // 單一圖片上傳中介件
 exports.singleItemImage = itemUpload.single("image");
 exports.singleFoodImage = foodUpload.single("image");
+exports.singleAvatar = avatarUpload.single("avatar");
 
 // 錯誤處理中介件
 exports.handleUploadError = (err, req, res, next) => {

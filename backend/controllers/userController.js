@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const UserCrud = require("../crud/user.crud");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const path = require("path");
 
 // 用於儲存重設密碼的令牌
 const resetTokens = {};
@@ -439,6 +440,41 @@ exports.simpleUpdatePassword = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "伺服器錯誤，無法更新密碼",
+      error: error.message,
+    });
+  }
+};
+
+// 上傳用戶頭像
+exports.uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "沒有上傳任何頭像圖片",
+      });
+    }
+
+    const userId = req.id;
+
+    // 儲存相對路徑，方便前端訪問
+    const relativePath = `/uploads/avatar/${path.basename(req.file.path)}`;
+
+    // 更新用戶頭像路徑 - 使用 avatar_url 而非 profile_image
+    await UserCrud.updateUserInfo(userId, { avatar_url: relativePath });
+
+    return res.status(200).json({
+      success: true,
+      message: "頭像上傳成功",
+      data: {
+        avatar_url: relativePath,
+      },
+    });
+  } catch (error) {
+    console.error("頭像上傳失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法上傳頭像",
       error: error.message,
     });
   }
