@@ -72,8 +72,8 @@ exports.getFakeToken = async (req, res) => {
 exports.getUserInfo = async (req, res) => {
   try {
     const user = await UserCrud.findUserById(req.id);
+    console.log("user", user);
 
-    delete user.dataValues.user_id;
     delete user.dataValues.password_hash;
     delete user.dataValues.createdAt;
     delete user.dataValues.updatedAt;
