@@ -598,6 +598,17 @@ const setLocation = (loc) => {
 };
 
 const handleSubmit = async () => {
+  // 檢查是否已選擇地圖位置
+  if (!latitude.value || !longitude.value) {
+    Swal.fire({
+      icon: "warning",
+      title: "未選擇地點",
+      text: "請在地圖上選擇撿到物品的位置",
+      confirmButtonColor: "#10b981",
+    });
+    return;
+  }
+
   isSubmitting.value = true;
 
   try {
