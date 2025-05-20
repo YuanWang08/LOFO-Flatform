@@ -1,5 +1,10 @@
 const {
-  models: { foods: Food, users: User, reservations: Reservation },
+  models: {
+    foods: Food,
+    users: User,
+    reservations: Reservation,
+    food_claims: FoodClaim,
+  },
 } = require("../config/sequelize");
 
 const sequelize = require("../config/sequelize");
@@ -305,6 +310,52 @@ exports.handleReservation = async (foodId, reservationId, status) => {
     }
   } catch (error) {
     console.error("處理食物預約失敗:", error);
+    throw error;
+  }
+};
+
+// 標記自取食物已被拿走
+exports.markAsSelfPickedUp = async (foodId, userId) => {
+  try {
+    const transaction = await sequelize.transaction();
+
+    try {
+      // 更新食物狀態為已認領
+      const updatedFood = await Food.update(
+        {
+          status: "claimed",
+        },
+        {
+          where: { food_id: foodId },
+          returning: true,
+          transaction,
+        }
+      );
+
+      // 創建食物認領記錄
+      const foodClaim = await FoodClaim.create(
+        {
+          food_id: foodId,
+          claimed_by: userId,
+          status: "accepted", // 直接設置為已接受，因為是自取方式
+        },
+        { transaction }
+      );
+
+      // 提交事務
+      await transaction.commit();
+
+      return {
+        food: updatedFood[1][0],
+        claim: foodClaim,
+      };
+    } catch (error) {
+      // 回滾事務
+      await transaction.rollback();
+      throw error;
+    }
+  } catch (error) {
+    console.error("標記食物已拿走失敗:", error);
     throw error;
   }
 };

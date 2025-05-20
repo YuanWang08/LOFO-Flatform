@@ -54,4 +54,11 @@ router.put(
   foodCtrl.handleReservation
 );
 
+// POST /api/foods/:id/self-pickup - 標記自取食物已被拿走
+router.post(
+  "/:id/self-pickup",
+  authMid.authRequired(),
+  foodCtrl.markAsSelfPickedUp
+);
+
 module.exports = router;

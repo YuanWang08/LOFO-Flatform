@@ -408,3 +408,52 @@ exports.handleReservation = async (req, res) => {
     });
   }
 };
+
+// 標記自取食物已被拿走
+exports.markAsSelfPickedUp = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.id;
+
+    // 檢查食物是否存在
+    const food = await FoodCrud.getFoodById(id);
+    if (!food) {
+      return res.status(404).json({
+        success: false,
+        message: "找不到指定食物",
+      });
+    }
+
+    // 確認是否為自取方式
+    if (food.pickup_method !== "self") {
+      return res.status(400).json({
+        success: false,
+        message: "此食物非自取方式，無法使用此功能",
+      });
+    }
+
+    // 確認食物狀態為可用
+    if (food.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "此食物已不可用，無法標記為已拿走",
+      });
+    }
+
+    // 更新食物狀態為已認領
+    const updatedFood = await FoodCrud.markAsSelfPickedUp(id, userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "已成功標記食物為已拿走",
+      data: updatedFood,
+    });
+  } catch (error) {
+    console.error("標記食物已拿走失敗:", error);
+    return res.status(500).json({
+      success: false,
+      message: "伺服器錯誤，無法標記食物為已拿走",
+      error: error.message,
+    });
+  }
+};
