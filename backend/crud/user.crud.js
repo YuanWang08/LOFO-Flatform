@@ -172,7 +172,12 @@ exports.getHelpCount = async (userId) => {
   try {
     // 引入必要的模型
     const {
-      models: { items: Item, foods: Food, item_claims: ItemClaim },
+      models: {
+        items: Item,
+        foods: Food,
+        item_claims: ItemClaim,
+        reservations: Reservation,
+      },
     } = require("../config/sequelize");
 
     // 計算用戶發布的物品被他人認領並確認的數量
@@ -201,9 +206,16 @@ exports.getHelpCount = async (userId) => {
     const foodsHelpCount = await Food.count({
       where: {
         created_by: userId,
-        status: "claimed", // 只計算已被領取的食物
+        status: "claimed",
       },
     });
+
+    // 計算用戶分享食物別人預約的數量
+    // const reservationsCount = await Reservation.count({
+    //   where: {
+    //     food_id: userItemIds,
+    //   },
+    // });
 
     // 總協助數量是物品被成功認領的數量加上食物被成功領取的數量
     return itemsHelpCount + foodsHelpCount;
