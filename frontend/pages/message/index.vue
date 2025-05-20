@@ -23,9 +23,11 @@
             </span>
           </div>
         </div>
-
         <!-- 聊天列表 -->
-        <div class="overflow-y-auto h-[calc(100vh-240px)]">
+        <div
+          class="overflow-y-auto"
+          style="height: calc(100vh - 200px); max-height: 400px"
+        >
           <div v-if="loading" class="p-4 text-center text-gray-500">
             <div
               class="animate-spin inline-block w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full mr-2"
@@ -117,11 +119,11 @@
               </div>
             </div>
           </div>
-
           <!-- 聊天訊息 -->
           <div
             ref="messageContainer"
-            class="flex-1 overflow-y-auto p-4 bg-gray-50 h-[calc(100vh-280px)]"
+            class="flex-1 overflow-y-auto p-4 bg-gray-50"
+            style="height: calc(100vh - 240px); max-height: 440px"
           >
             <div v-if="loading" class="text-center text-gray-500 py-4">
               <div
@@ -215,7 +217,7 @@
                 :disabled="!newMessage.trim()"
                 class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <i class="fas fa-paper-plane"></i>
+                <Send class="h-5 w-5" />
               </button>
             </form>
           </div>
@@ -231,6 +233,7 @@ import { io } from "socket.io-client";
 import { useAuthStore } from "~/stores/auth";
 import { useRouter, useRoute } from "vue-router";
 import { useCookie } from "#app";
+import { Send } from "lucide-vue-next";
 
 const router = useRouter();
 const authStore = useAuthStore();
