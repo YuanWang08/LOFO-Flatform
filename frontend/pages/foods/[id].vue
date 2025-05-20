@@ -405,6 +405,24 @@
               <p class="text-center text-sm text-amber-600 mt-2">
                 請前往指定地點自行取用
               </p>
+              <button
+                v-if="authStore.isAuthenticated"
+                @click="handleSelfPickup"
+                :disabled="isSelfPickingUp"
+                class="mt-4 px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div
+                  v-if="isSelfPickingUp"
+                  class="flex items-center justify-center"
+                >
+                  <Loader2 class="mr-2 h-4 w-4 animate-spin" />
+                  處理中...
+                </div>
+                <div v-else class="flex items-center justify-center">
+                  <ShoppingBag class="mr-2 h-4 w-4" />
+                  標記已拿走
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -515,6 +533,7 @@ const message = ref("");
 const isSending = ref(false);
 const isReporting = ref(false);
 const isReserving = ref(false);
+const isSelfPickingUp = ref(false); // 新增：標記自取食物已被拿走的狀態
 const reservationQuantity = ref(1);
 const reservedQuantity = ref(0);
 const mapInitialized = ref(false);
@@ -884,6 +903,81 @@ const handleReservation = async () => {
   }
 };
 
+// 處理標記自取食物已被拿走
+const handleSelfPickup = async () => {
+  if (!authStore.isAuthenticated) {
+    Swal.fire({
+      icon: "warning",
+      title: "需要登入",
+      text: "您需要先登入才能標記食物為已拿走",
+      confirmButtonColor: "#10b981",
+    });
+    router.push("/login");
+    return;
+  }
+
+  // 確認用戶意圖
+  const result = await Swal.fire({
+    icon: "question",
+    title: "確認操作",
+    text: "您確定已經拿走這個食物了嗎？這將更新食物狀態，其他用戶將不再能看到此食物。",
+    showCancelButton: true,
+    confirmButtonText: "確認已拿走",
+    cancelButtonText: "取消",
+    confirmButtonColor: "#10b981",
+  });
+
+  if (!result.isConfirmed) return;
+
+  isSelfPickingUp.value = true;
+
+  try {
+    // 獲取認證 token
+    const authCookie = useCookie("auth_token");
+
+    // 發送請求
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/foods/${id}/self-pickup`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authCookie.value}`,
+        },
+      }
+    );
+    const data = await response.json();
+
+    if (data.success) {
+      Swal.fire({
+        icon: "success",
+        title: "操作成功",
+        text: "已成功標記食物為已拿走",
+        confirmButtonColor: "#10b981",
+      });
+      // 重新獲取食物資訊以更新顯示
+      fetchFoodData();
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "操作失敗",
+        text: `標記食物失敗: ${data.message}`,
+        confirmButtonColor: "#10b981",
+      });
+    }
+  } catch (error) {
+    console.error("標記食物已拿走時發生錯誤:", error);
+    Swal.fire({
+      icon: "error",
+      title: "操作失敗",
+      text: "標記食物已拿走時發生錯誤，請稍後再試。",
+      confirmButtonColor: "#10b981",
+    });
+  } finally {
+    isSelfPickingUp.value = false;
+  }
+};
+
 // 監控 activeTab 變化，初始化地圖
 watch(activeTab, (newTab) => {
   if (newTab === "location") {
@@ -998,9 +1092,9 @@ onUnmounted(() => {
 const getStatusText = (status) => {
   switch (status) {
     case "active":
-      return "可預約";
+      return "可用";
     case "claimed":
-      return "已預約";
+      return "已被取用";
     case "expired":
       return "已過期";
     case "withdrawn":
@@ -1030,7 +1124,7 @@ const getStatusClass = (status) => {
 const getDisabledMessageText = (status) => {
   switch (status) {
     case "claimed":
-      return "食物已被預約";
+      return "食物已被取用";
     case "expired":
       return "食物已過期";
     case "withdrawn":
