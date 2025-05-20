@@ -68,17 +68,17 @@
             <h3 class="font-medium text-gray-800">遺失物通知</h3>
             <p class="text-gray-500 text-sm mt-1">
               當您的遺失物有新回應或狀態更新時通知您
+              <span class="text-amber-600">(開發階段不提供關閉)</span>
             </p>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
+          <label class="relative inline-flex items-center">
             <input
               type="checkbox"
               v-model="itemNotifications"
               class="sr-only peer"
+              disabled
             />
-            <div
-              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"
-            ></div>
+            <div class="w-11 h-6 bg-emerald-600 rounded-full"></div>
           </label>
         </div>
 
@@ -90,17 +90,17 @@
             <h3 class="font-medium text-gray-800">食物分享通知</h3>
             <p class="text-gray-500 text-sm mt-1">
               當您分享的食物有人預約或您預約的食物有狀態更新時通知您
+              <span class="text-amber-600">(開發階段不提供關閉)</span>
             </p>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
+          <label class="relative inline-flex items-center">
             <input
               type="checkbox"
               v-model="foodNotifications"
               class="sr-only peer"
+              disabled
             />
-            <div
-              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"
-            ></div>
+            <div class="w-11 h-6 bg-emerald-600 rounded-full"></div>
           </label>
         </div>
 
@@ -108,17 +108,19 @@
         <div class="flex items-center justify-between py-4">
           <div>
             <h3 class="font-medium text-gray-800">訊息通知</h3>
-            <p class="text-gray-500 text-sm mt-1">當您收到新訊息時通知您</p>
+            <p class="text-gray-500 text-sm mt-1">
+              當您收到新訊息時通知您
+              <span class="text-amber-600">(開發階段不提供關閉)</span>
+            </p>
           </div>
-          <label class="relative inline-flex items-center cursor-pointer">
+          <label class="relative inline-flex items-center">
             <input
               type="checkbox"
               v-model="messageNotifications"
               class="sr-only peer"
+              disabled
             />
-            <div
-              class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"
-            ></div>
+            <div class="w-11 h-6 bg-emerald-600 rounded-full"></div>
           </label>
         </div>
       </div>
@@ -137,27 +139,89 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { useRuntimeConfig } from "#imports";
+import Swal from "sweetalert2";
+
+const config = useRuntimeConfig();
 
 // 通知開關的狀態
 const emailNotifications = ref(true);
 const discordNotifications = ref(false);
 
-// 通知類型的狀態
+// 通知類型的狀態 (開發階段固定為 true)
 const itemNotifications = ref(true);
 const foodNotifications = ref(true);
 const messageNotifications = ref(true);
 
-// 儲存設定
-const saveSettings = () => {
-  // 這裡只是顯示通知，實際應連接後端 API
-  alert("設定已儲存!");
-  console.log({
-    emailNotifications: emailNotifications.value,
-    discordNotifications: discordNotifications.value,
-    itemNotifications: itemNotifications.value,
-    foodNotifications: foodNotifications.value,
-    messageNotifications: messageNotifications.value,
-  });
+// 獲取用戶通知設定
+const fetchNotificationSettings = async () => {
+  try {
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/user/info`,
+      {
+        headers: {
+          Authorization: `Bearer ${useCookie("auth_token").value}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      emailNotifications.value = data.enable_email_notifacation;
+      discordNotifications.value = data.enabled_discord_notifacation;
+    }
+  } catch (error) {
+    console.error("獲取通知設定失敗:", error);
+  }
 };
+
+// 儲存設定
+const saveSettings = async () => {
+  try {
+    const response = await fetch(
+      `${config.public.BACKEND_BASE_URL}/user/update`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${useCookie("auth_token").value}`,
+        },
+        body: JSON.stringify({
+          enabled_discord_notifacation: discordNotifications.value,
+          enable_email_notifacation: emailNotifications.value,
+        }),
+      }
+    );
+
+    if (response.ok) {
+      Swal.fire({
+        icon: "success",
+        title: "設定已儲存",
+        text: "您的通知偏好設定已成功更新！",
+        confirmButtonColor: "#10b981",
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "儲存失敗",
+        text: "無法儲存設定，請稍後再試",
+        confirmButtonColor: "#10b981",
+      });
+    }
+  } catch (error) {
+    console.error("儲存設定失敗:", error);
+    Swal.fire({
+      icon: "error",
+      title: "儲存失敗",
+      text: "發生意外錯誤，請稍後再試",
+      confirmButtonColor: "#10b981",
+    });
+  }
+};
+
+// 在組件掛載時獲取通知設定
+onMounted(() => {
+  fetchNotificationSettings();
+});
 </script>
