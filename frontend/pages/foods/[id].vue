@@ -730,16 +730,36 @@ const prevImage = () => {
 
 // 發送訊息
 const handleSendMessage = async () => {
-  if (!message.value.trim() || !authStore.isAuthenticated) return;
-  if (food.value.status !== "active") return;
+  if (!authStore.isAuthenticated) {
+    Swal.fire({
+      icon: "warning",
+      title: "需要登入",
+      text: "您需要先登入才能發送訊息",
+      confirmButtonColor: "#10b981",
+    });
+    router.push("/login");
+    return;
+  }
+
+  if (!message.value.trim()) {
+    Swal.fire({
+      icon: "warning",
+      title: "訊息不能為空",
+      text: "請輸入訊息內容",
+      confirmButtonColor: "#10b981",
+    });
+    return;
+  }
 
   isSending.value = true;
 
   try {
     // 獲取認證 token
-    const authCookie = useCookie("auth_token"); // 1. 創建或獲取已有的聊天室
-    const chatResponse = await fetch(
-      `${config.public.BACKEND_BASE_URL}/chatrooms`,
+    const authCookie = useCookie("auth_token");
+
+    // 使用 chat 路由直接發送私人消息到 MongoDB
+    const messageResponse = await fetch(
+      `${config.public.BACKEND_BASE_URL}/chat/private/${food.value.created_by}`,
       {
         method: "POST",
         headers: {
@@ -747,55 +767,47 @@ const handleSendMessage = async () => {
           Authorization: `Bearer ${authCookie.value}`,
         },
         body: JSON.stringify({
-          event_type: "food", // 食物分享類型
-          event_id: food.value.food_id || food.value.id, // 確保使用正確的 food_id
-          participant_ids: [food.value.created_by], // 添加食物創建者為參與者
+          content: message.value.trim(),
         }),
       }
     );
 
-    const chatData = await chatResponse.json();
-
-    if (chatData.success) {
-      // 2. 發送第一條消息
-      if (chatData.message !== "聊天室已存在") {
-        await fetch(
-          `${config.public.BACKEND_BASE_URL}/messages/chatroom/${chatData.data.chatroom_id}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${authCookie.value}`,
-            },
-            body: JSON.stringify({ content: message.value.trim() }),
-          }
-        );
-      }
-
-      // 3. 跳轉到聊天頁面
-      router.push({
-        path: "/message",
-        query: { id: chatData.data.chatroom_id },
-      });
-    } else {
-      Swal.fire({
-        icon: "error",
-        title: "發送失敗",
-        text: "創建聊天室失敗，請稍後再試",
-        confirmButtonColor: "#10b981",
-      });
+    if (!messageResponse.ok) {
+      const errorData = await messageResponse.json();
+      throw new Error(errorData.message || "發送訊息失敗");
     }
+
+    const messageData = await messageResponse.json();
+
+    if (!messageData.success) {
+      throw new Error(messageData.message || "發送訊息失敗");
+    }
+
+    // 清空訊息輸入框
+    message.value = "";
+
+    // 顯示成功訊息
+    Swal.fire({
+      icon: "success",
+      title: "發送成功",
+      text: "訊息已成功發送",
+      confirmButtonColor: "#10b981",
+    });
+
+    // 跳轉到聊天頁面
+    router.push({
+      path: "/message",
+    });
   } catch (error) {
     console.error("發送訊息失敗:", error);
     Swal.fire({
       icon: "error",
       title: "發送失敗",
-      text: "發送訊息失敗，請稍後再試",
+      text: `發送訊息失敗: ${error.message}`,
       confirmButtonColor: "#10b981",
     });
   } finally {
     isSending.value = false;
-    message.value = "";
   }
 };
 
