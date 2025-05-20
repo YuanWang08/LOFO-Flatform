@@ -45,6 +45,28 @@ module.exports = (sequelize) => {
         type: DataTypes.STRING(128),
         allowNull: true,
       },
+      description: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      phone: {
+        type: DataTypes.STRING(16),
+        allowNull: true,
+      },
+      discord_webhook: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      enabled_discord_notifacation: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      enable_email_notifacation: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
     },
     {
       tableName: "users",
