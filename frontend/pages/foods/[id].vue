@@ -417,7 +417,11 @@
               <button
                 v-if="authStore.isAuthenticated"
                 @click="handleSelfPickup"
-                :disabled="isSelfPickingUp"
+                :disabled="
+                  isSelfPickingUp ||
+                  food.created_by === currentUserId ||
+                  food.status !== 'active'
+                "
                 class="mt-4 px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div
@@ -426,6 +430,20 @@
                 >
                   <Loader2 class="mr-2 h-4 w-4 animate-spin" />
                   處理中...
+                </div>
+                <div
+                  v-else-if="food.created_by === currentUserId"
+                  class="flex items-center justify-center"
+                >
+                  <XCircle class="mr-2 h-4 w-4" />
+                  這是您分享的食物
+                </div>
+                <div
+                  v-else-if="food.status !== 'active'"
+                  class="flex items-center justify-center"
+                >
+                  <XCircle class="mr-2 h-4 w-4" />
+                  此食物無法標記
                 </div>
                 <div v-else class="flex items-center justify-center">
                   <ShoppingBag class="mr-2 h-4 w-4" />
