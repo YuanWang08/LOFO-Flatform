@@ -5,10 +5,11 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 const path = require("path");
 const http = require("http");
+const socketIo = require("socket.io");
+const socketHandler = require("./socket/chat");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 var { sequelizeCheck } = require("./config/sequelize");
-const { initSocketIO } = require("./socketService");
 
 var indexRouter = require("./routes/index.route");
 
@@ -21,11 +22,14 @@ sequelizeCheck();
 // 創建HTTP服務器實例
 const server = http.createServer(app);
 
-// 初始化 Socket.IO
-const io = initSocketIO(server);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
-// 將 socket.io 實例添加到 app 對象，以便在路由中使用
-app.set("io", io);
+socketHandler(io);
 
 // 啟動HTTP伺服器（而不是Express應用）
 server.listen(port, () => {
