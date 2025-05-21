@@ -11,7 +11,7 @@ services:
     ports:
       - "1234:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - ./pg_data:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4
@@ -31,13 +31,9 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - ./mongo_data:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=mongoadmin2024
       - MONGO_INITDB_DATABASE=messageDB
     restart: always
-
-volumes:
-  pgdata:
-  mongodb_data:
