@@ -1,4 +1,3 @@
-// app.js
 const express = require("express");
 var createError = require("http-errors");
 var cookieParser = require("cookie-parser");
@@ -20,13 +19,10 @@ var indexRouter = require("./routes/index.route");
 var app = express();
 app.use(express.json());
 
-// 檢查並設定合適的資料庫連接
 sequelizeCheck();
 
-// 初始化通知排程服務
 initializeNotificationScheduler();
 
-// 創建HTTP服務器實例
 const server = http.createServer(app);
 
 const io = socketIo(server, {
@@ -38,7 +34,6 @@ const io = socketIo(server, {
 
 socketHandler(io);
 
-// 啟動HTTP伺服器（而不是Express應用）
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
   // 測試通知功能
@@ -50,7 +45,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static("public"));
 
-// 設置上傳文件的靜態訪問路徑
 app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use((req, res, next) => {
