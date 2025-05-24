@@ -32,7 +32,6 @@ exports.findUserByEmail = async (email) => {
   }
 };
 
-// 根據 Email 查找用戶，若不存在則創建
 exports.findOrCreateByEmail = async (email, additionalData = {}) => {
   try {
     let user = await User.findOne({
@@ -67,7 +66,6 @@ exports.createUser = async (userData) => {
       delete userData.password;
     }
 
-    // 建立使用者
     const user = await User.create(userData);
     return user;
   } catch (error) {
@@ -151,7 +149,6 @@ exports.getUploadItemsCount = async (userId) => {
 
 exports.getUploadFoodsCount = async (userId) => {
   try {
-    // 引入 Food 模型
     const {
       models: { foods: Food },
     } = require("../config/sequelize");
@@ -170,7 +167,6 @@ exports.getUploadFoodsCount = async (userId) => {
 
 exports.getHelpCount = async (userId) => {
   try {
-    // 引入必要的模型
     const {
       models: {
         items: Item,
