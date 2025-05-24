@@ -4,7 +4,6 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const path = require("path");
 
-// 用於儲存重設密碼的令牌
 const resetTokens = {};
 
 const getToken = async (id) => {
@@ -44,7 +43,7 @@ exports.auth = async (req, res) => {
     });
   }
 
-  // 處理重導向，支援 Portal 和 Google 兩種登入
+  // 處理重導向
   const userId = isGoogleAuth ? user.user_id : user[0]["user_id"];
   const token = await getToken(userId);
   return res.redirect(`${process.env.FRONTEND_BASE_URL}/token?token=${token}`);
@@ -170,7 +169,6 @@ exports.register = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 驗證必填欄位
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -178,7 +176,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 檢查電子郵件格式
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -187,7 +184,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 檢查密碼長度
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -195,7 +191,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 檢查電子郵件是否已被使用
     const existingUser = await UserCrud.findUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({
@@ -204,16 +199,14 @@ exports.register = async (req, res) => {
       });
     }
 
-    // 建立新用戶，不指定 nickname，使用模型中的預設值
+    // 建立新用戶
     const user = await UserCrud.createUser({
       email,
       password,
     });
 
-    // 生成 JWT
     const token = await getToken(user.user_id);
 
-    // 回傳成功訊息和令牌
     return res.status(201).json({
       success: true,
       message: "註冊成功",
@@ -234,7 +227,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 驗證必填欄位
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -242,7 +234,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 查詢用戶
     const user = await UserCrud.findUserByEmail(email);
     if (!user) {
       return res.status(401).json({
@@ -251,7 +242,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 驗證密碼
     const isPasswordValid = await UserCrud.verifyPassword(user, password);
     if (!isPasswordValid) {
       return res.status(401).json({
@@ -260,10 +250,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 生成 JWT
     const token = await getToken(user.user_id);
 
-    // 回傳成功訊息和令牌
     return res.status(200).json({
       success: true,
       message: "登入成功",
@@ -291,19 +279,16 @@ exports.resetPassword = async (req, res) => {
       });
     }
 
-    // 檢查用戶是否存在
     const user = await UserCrud.findUserByEmail(email);
     if (!user) {
-      // 為了安全，即使用戶不存在也返回相同的訊息
       return res.status(200).json({
         success: true,
         message: "如果此電子郵件已註冊，重設密碼指示將發送到您的信箱",
       });
     }
 
-    // 生成重設令牌
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const expiresAt = Date.now() + 3600000; // 令牌有效期為一小時
+    const expiresAt = Date.now() + 3600000;
 
     // 存儲令牌與用戶關聯
     resetTokens[resetToken] = {
@@ -311,15 +296,14 @@ exports.resetPassword = async (req, res) => {
       expiresAt,
     };
 
-    // 在真實環境中，這裡應該發送電子郵件
-    // 為了示範，我們直接回傳令牌
     // TODO: 設定正確的郵件傳送系統
+    // 沒有要做
 
     // 返回令牌（實際應用中應發送電子郵件）
     return res.status(200).json({
       success: true,
       message: "如果此電子郵件已註冊，重設密碼指示將發送到您的信箱",
-      resetToken: resetToken, // 僅供測試，實際環境中不應回傳
+      resetToken: resetToken, // 僅供測試
     });
   } catch (error) {
     console.error("重設密碼請求失敗:", error);
@@ -350,7 +334,6 @@ exports.confirmResetPassword = async (req, res) => {
       });
     }
 
-    // 檢查令牌是否有效
     const tokenData = resetTokens[resetToken];
     if (!tokenData || tokenData.expiresAt < Date.now()) {
       return res.status(401).json({
@@ -359,10 +342,8 @@ exports.confirmResetPassword = async (req, res) => {
       });
     }
 
-    // 更新用戶密碼
     await UserCrud.updatePassword(tokenData.userId, newPassword);
 
-    // 刪除使用過的令牌
     delete resetTokens[resetToken];
 
     return res.status(200).json({
@@ -379,7 +360,7 @@ exports.confirmResetPassword = async (req, res) => {
   }
 };
 
-// 更新密碼（已登入用戶）
+// 更新密碼
 exports.updatePassword = async (req, res) => {
   try {
     const userId = req.id;
@@ -399,7 +380,6 @@ exports.updatePassword = async (req, res) => {
       });
     }
 
-    // 獲取用戶資訊
     const user = await UserCrud.findUserById(userId);
     if (!user) {
       return res.status(404).json({
@@ -408,7 +388,6 @@ exports.updatePassword = async (req, res) => {
       });
     }
 
-    // 驗證當前密碼
     const isPasswordValid = await UserCrud.verifyPassword(
       user,
       currentPassword
@@ -420,7 +399,6 @@ exports.updatePassword = async (req, res) => {
       });
     }
 
-    // 更新密碼
     await UserCrud.updatePassword(userId, newPassword);
 
     return res.status(200).json({
@@ -457,7 +435,6 @@ exports.simpleUpdatePassword = async (req, res) => {
       });
     }
 
-    // 獲取用戶資訊
     const user = await UserCrud.findUserById(userId);
     if (!user) {
       return res.status(404).json({
@@ -466,7 +443,6 @@ exports.simpleUpdatePassword = async (req, res) => {
       });
     }
 
-    // 更新密碼，不需要驗證舊密碼
     await UserCrud.updatePassword(userId, newPassword);
 
     return res.status(200).json({
@@ -494,11 +470,7 @@ exports.uploadAvatar = async (req, res) => {
     }
 
     const userId = req.id;
-
-    // 儲存相對路徑，方便前端訪問
     const relativePath = `/uploads/avatar/${path.basename(req.file.path)}`;
-
-    // 更新用戶頭像路徑 - 使用 avatar_url 而非 profile_image
     await UserCrud.updateUserInfo(userId, { avatar_url: relativePath });
 
     return res.status(200).json({
