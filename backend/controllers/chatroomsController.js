@@ -1,4 +1,3 @@
-// chatroomsController.js
 const db = require("../config/sequelize");
 const { Op } = require("sequelize");
 const { v4: uuidv4 } = require("uuid");
@@ -8,7 +7,6 @@ const getUserChatrooms = async (req, res) => {
   try {
     const { user_id } = req.user;
 
-    // 找出用戶參與的所有聊天室
     const userChatrooms = await db.chatroom_participants.findAll({
       where: { user_id },
       include: [
@@ -36,7 +34,6 @@ const getUserChatrooms = async (req, res) => {
       order: [[db.chatrooms, db.messages, "createdAt", "DESC"]],
     });
 
-    // 整理數據格式，使它更易於前端處理
     const formattedChatrooms = userChatrooms.map((participation) => {
       const chatroom = participation.chatroom;
       return {
@@ -115,13 +112,11 @@ const createChatroom = async (req, res) => {
       });
     }
 
-    // 創建新聊天室
     const newChatroom = await db.chatrooms.create({
       event_type,
       event_id,
     });
 
-    // 添加參與者
     await Promise.all(
       allParticipants.map((participantId) =>
         db.chatroom_participants.create({
