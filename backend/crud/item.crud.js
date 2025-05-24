@@ -19,20 +19,17 @@ exports.getAllItems = async (query = {}) => {
   try {
     const { category, status, keyword, limit = 20, page = 1 } = query;
 
-    // 建立查詢條件
     const where = {};
 
-    // 如果提供了類別，加入查詢條件
     if (category) {
       where.category = category;
     }
 
-    // 如果提供了狀態(active/claimed/closed/withdrawn)，加入查詢條件
+    // active/claimed/closed/withdrawn
     if (status) {
       where.status = status;
     }
 
-    // 如果提供了關鍵字，搜尋標題和關鍵字欄位
     if (keyword) {
       where[sequelize.Op.or] = [
         { title: { [sequelize.Op.iLike]: `%${keyword}%` } },
@@ -40,10 +37,8 @@ exports.getAllItems = async (query = {}) => {
       ];
     }
 
-    // 計算分頁
     const offset = (page - 1) * limit;
 
-    // 執行查詢
     const { count, rows } = await Item.findAndCountAll({
       where,
       include: [
@@ -58,7 +53,6 @@ exports.getAllItems = async (query = {}) => {
       offset,
     });
 
-    // 返回結果
     return {
       items: rows,
       pagination: {
@@ -102,11 +96,9 @@ exports.getItemById = async (itemId) => {
 
 exports.claimItem = async (itemId, userId) => {
   try {
-    // 開始事務
     const transaction = await sequelize.transaction();
 
     try {
-      // 檢查物品是否存在且狀態為 active
       const item = await Item.findByPk(itemId, { transaction });
       if (!item) {
         throw new Error("物品不存在");
@@ -116,25 +108,21 @@ exports.claimItem = async (itemId, userId) => {
         throw new Error("物品狀態不允許認領");
       }
 
-      // 創建物品認領記錄
       const claim = await ItemClaim.create(
         {
           item_id: itemId,
           claimed_by: userId,
-          status: "accepted", // 直接設定為已接受，無論是否允許私訊
+          status: "accepted",
         },
         { transaction }
       );
 
-      // 更改物品狀態為已認領
       await item.update({ status: "claimed" }, { transaction });
 
-      // 提交事務
       await transaction.commit();
 
       return { item, claim };
     } catch (error) {
-      // 回滾事務
       await transaction.rollback();
       throw error;
     }
