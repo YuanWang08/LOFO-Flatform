@@ -1,4 +1,3 @@
-// filepath: c:\Users\sckwi\Desktop\網頁程式設計\web-final-project\backend\controllers\geminiController.js
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const path = require("path");
 const fs = require("fs");
@@ -6,10 +5,8 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-// 初始化 Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// 輔助函式：將圖片檔案轉換為 base64 格式
 function fileToGenerativePart(filePath, mimeType) {
   const fileBuffer = fs.readFileSync(filePath);
   return {
@@ -34,7 +31,6 @@ exports.analyzeItem = async (req, res) => {
     const filePath = req.file.path;
     const imagePart = fileToGenerativePart(filePath, req.file.mimetype);
 
-    // 取得遺失物類別列表，用於提示詞
     const itemCategories = [
       "有價票券",
       "3C電子",
@@ -49,10 +45,8 @@ exports.analyzeItem = async (req, res) => {
       "其他",
     ];
 
-    // 建立模型
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // 建立提示詞
     const prompt = `你是一個專業的物品分析助手。請根據圖片分析這個遺失物品並提供以下資訊：
     1. 物品名稱
     2. 物品類別 (必須從以下選項中選擇一個: ${itemCategories.join(", ")})
@@ -69,12 +63,11 @@ exports.analyzeItem = async (req, res) => {
     
     只回傳JSON格式，不要有其他文字。`;
 
-    // 發送請求至 Gemini API
     const result = await model.generateContent([prompt, imagePart]);
     const response = await result.response;
     const text = response.text();
 
-    // 解析回應中的 JSON
+    // 解析回應 JSON
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ message: "無法從 AI 回應解析資訊" });
@@ -82,7 +75,6 @@ exports.analyzeItem = async (req, res) => {
 
     const analysisResult = JSON.parse(jsonMatch[0]);
 
-    // 回傳結果
     return res.status(200).json(analysisResult);
   } catch (error) {
     console.error("分析物品時發生錯誤:", error);
@@ -106,7 +98,6 @@ exports.analyzeFood = async (req, res) => {
     const filePath = req.file.path;
     const imagePart = fileToGenerativePart(filePath, req.file.mimetype);
 
-    // 取得食物類別列表，用於提示詞
     const foodCategories = [
       "即期品",
       "水果",
@@ -117,10 +108,8 @@ exports.analyzeFood = async (req, res) => {
       "剩菜",
     ];
 
-    // 建立模型
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // 建立提示詞
     const prompt = `你是一個專業的食物分析助手。請根據圖片分析這個食物並提供以下資訊：
     1. 食物名稱
     2. 食物類別 (必須從以下選項中選擇一個: ${foodCategories.join(", ")})
@@ -135,12 +124,11 @@ exports.analyzeFood = async (req, res) => {
     
     只回傳JSON格式，不要有其他文字。`;
 
-    // 發送請求至 Gemini API
     const result = await model.generateContent([prompt, imagePart]);
     const response = await result.response;
     const text = response.text();
 
-    // 解析回應中的 JSON
+    // 解析回應 JSON
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       return res.status(500).json({ message: "無法從 AI 回應解析資訊" });
