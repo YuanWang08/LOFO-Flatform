@@ -4,10 +4,8 @@ const path = require("path");
 // 創建新的物品
 exports.createItem = async (req, res) => {
   try {
-    // 從認證中獲取用戶ID
     const userId = req.id;
 
-    // 準備payload，添加用戶ID作為創建者
     const payload = {
       ...req.body,
       created_by: userId,
@@ -15,31 +13,22 @@ exports.createItem = async (req, res) => {
 
     // 特別處理 keywords 欄位，確保它是陣列格式
     if (req.body.keywords) {
-      // 如果是字串格式的 JSON 陣列
       if (typeof req.body.keywords === "string") {
         try {
-          // 嘗試解析 JSON 字串
           if (req.body.keywords.trim().startsWith("[")) {
             payload.keywords = JSON.parse(req.body.keywords);
           } else {
-            // 如果不是 JSON 格式，當作單一關鍵字處理
             payload.keywords = [req.body.keywords];
           }
         } catch (e) {
-          // JSON 解析失敗，將整個字串視為單一關鍵字
           payload.keywords = [req.body.keywords];
         }
-      }
-      // keywords 已經是陣列格式
-      else if (Array.isArray(req.body.keywords)) {
+      } else if (Array.isArray(req.body.keywords)) {
         payload.keywords = req.body.keywords;
-      }
-      // 其他情況，轉為陣列
-      else {
+      } else {
         payload.keywords = [req.body.keywords].filter(Boolean);
       }
     } else {
-      // 如果沒有提供 keywords，設為空陣列
       payload.keywords = [];
     }
 
@@ -48,7 +37,6 @@ exports.createItem = async (req, res) => {
       payload.keywords = [];
     }
 
-    // 檢查必要的欄位
     const requiredFields = [
       "title",
       "category",
@@ -73,12 +61,10 @@ exports.createItem = async (req, res) => {
 
     // 處理上傳的圖片
     if (req.file) {
-      // 儲存相對路徑，方便前端訪問
       const relativePath = `/uploads/item/${path.basename(req.file.path)}`;
       payload.image_url = relativePath;
     }
 
-    // 創建物品
     const item = await ItemCrud.createItem(payload);
 
     return res.status(201).json({
@@ -106,7 +92,6 @@ exports.uploadItemImage = async (req, res) => {
       });
     }
 
-    // 儲存相對路徑，方便前端訪問
     const relativePath = `/uploads/item/${path.basename(req.file.path)}`;
 
     return res.status(200).json({
@@ -129,10 +114,8 @@ exports.uploadItemImage = async (req, res) => {
 // 獲取所有物品，支持分頁和篩選
 exports.getAllItems = async (req, res) => {
   try {
-    // 從查詢參數獲取篩選條件
     const { category, status, keyword, page, limit } = req.query;
 
-    // 獲取物品列表
     const result = await ItemCrud.getAllItems({
       category,
       status,
@@ -188,13 +171,11 @@ exports.getItemById = async (req, res) => {
 // 使用者認領物品
 exports.claimItem = async (req, res) => {
   try {
-    const { id } = req.params; // 獲取物品 ID
-    const userId = req.id; // 從認證中獲取用戶 ID
+    const { id } = req.params;
+    const userId = req.id;
 
-    // 調用 CRUD 層進行物品認領
     const result = await ItemCrud.claimItem(id, userId);
 
-    // 返回成功結果
     return res.status(200).json({
       success: true,
       message: "物品認領請求已提交",
@@ -207,7 +188,6 @@ exports.claimItem = async (req, res) => {
   } catch (error) {
     console.error("認領物品失敗:", error);
 
-    // 處理特定錯誤
     if (error.message === "物品不存在") {
       return res.status(404).json({
         success: false,
@@ -220,7 +200,6 @@ exports.claimItem = async (req, res) => {
       });
     }
 
-    // 處理通用錯誤
     return res.status(500).json({
       success: false,
       message: "伺服器錯誤，無法認領物品",
