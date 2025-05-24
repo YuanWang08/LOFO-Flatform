@@ -13,10 +13,8 @@ router.get(
       const { receiver_id } = req.params;
       const { page = 1, limit = 50 } = req.query;
 
-      // 計算分頁
       const offset = (parseInt(page) - 1) * parseInt(limit);
 
-      // 查詢兩個用戶之間的所有消息
       const messages = await MongooseMsg.find({
         $or: [
           { senderId, receiverId: receiver_id },
@@ -27,7 +25,6 @@ router.get(
         .skip(offset)
         .limit(parseInt(limit));
 
-      // 獲取消息總數用於分頁
       const totalCount = await MongooseMsg.countDocuments({
         $or: [
           { senderId, receiverId: receiver_id },
@@ -38,7 +35,7 @@ router.get(
       return res.status(200).json({
         success: true,
         data: {
-          messages: messages.reverse(), // 返回時按時間順序排列
+          messages: messages.reverse(),
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -74,7 +71,6 @@ router.post(
         });
       }
 
-      // 創建新消息
       const newMessage = new MongooseMsg({
         senderId,
         receiverId: receiver_id,
@@ -103,12 +99,10 @@ router.get("/recent", authMid.authRequired(), async (req, res) => {
   try {
     const userId = req.user.user_id;
 
-    // 查找該用戶參與的所有消息
     const messages = await MongooseMsg.find({
       $or: [{ senderId: userId }, { receiverId: userId }],
     }).sort({ timestamp: -1 });
 
-    // 提取並去重聊天對象
     const chatPartners = new Set();
     const recentChats = [];
 
