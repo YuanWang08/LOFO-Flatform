@@ -1,4 +1,3 @@
-// users.model.js
 const e = require("express");
 const { DataTypes } = require("sequelize");
 
@@ -75,5 +74,5 @@ module.exports = (sequelize) => {
     }
   );
 
-  return User; // ✅ 一定要 return 出來！
+  return User;
 };
