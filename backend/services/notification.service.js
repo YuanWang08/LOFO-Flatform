@@ -3,14 +3,12 @@ const { Op } = require("sequelize");
 const cron = require("node-cron");
 const axios = require("axios");
 
-// 取得所有模型
 const db = {
   users: sequelize.model("users"),
   items: sequelize.model("items"),
   foods: sequelize.model("foods"),
 };
 
-// 格式化時間函數
 const formatDate = (date) => {
   const d = new Date(date);
   if (isNaN(d.getTime())) {
@@ -60,16 +58,14 @@ const getRecentItems = async () => {
       include: [
         {
           model: db.users,
-          as: "creator", // 修改為正確的關聯別名
+          as: "creator",
           attributes: ["nickname"],
         },
       ],
     });
 
-    // 計算12小時前的時間點
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
 
-    // 過濾出12小時內的物品
     const recentItems = items.filter((item) => {
       const itemLocalTime = new Date(item.createdAt);
       return itemLocalTime >= twelveHoursAgo;
@@ -92,16 +88,14 @@ const getRecentFoods = async () => {
       include: [
         {
           model: db.users,
-          as: "sharer", // 修改為正確的關聯別名
+          as: "sharer",
           attributes: ["nickname"],
         },
       ],
     });
 
-    // 計算12小時前的時間點
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
 
-    // 過濾出12小時內的食物
     const recentFoods = foods.filter((food) => {
       const foodLocalTime = new Date(food.createdAt);
       return foodLocalTime >= twelveHoursAgo;
@@ -120,7 +114,7 @@ const sendDiscordNotification = async (webhook, content) => {
     await axios.post(webhook, {
       content: content,
       avatar_url: "https://i.meee.com.tw/tfkgpgK.png",
-      username: "LOFO-遺失物與食物分享通知", // 可選：自訂發送者名稱
+      username: "LOFO-遺失物與食物分享通知",
     });
     return true;
   } catch (error) {
@@ -159,7 +153,6 @@ const createNotificationContent = (items, foods) => {
   return content;
 };
 
-// 設定每天早上7點和下午1點執行的定時任務
 const initializeNotificationScheduler = () => {
   try {
     // 每天早上7點
@@ -195,20 +188,16 @@ const initializeNotificationScheduler = () => {
 // 執行發送通知的主要函數
 const sendScheduledNotifications = async () => {
   try {
-    // 獲取需要發送通知的用戶
     const users = await getNotificationUsers();
     if (users.length === 0) return;
 
-    // 獲取最近的物品和食物
     const [items, foods] = await Promise.all([
       getRecentItems(),
       getRecentFoods(),
     ]);
 
-    // 建立通知內容
     const notificationContent = createNotificationContent(items, foods);
 
-    // 向每個用戶發送通知
     for (const user of users) {
       await sendDiscordNotification(user.discord_webhook, notificationContent);
     }
