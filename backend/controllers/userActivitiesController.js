@@ -1,11 +1,8 @@
 const UserActivitiesCrud = require("../crud/user_activities.crud");
 
-/**
- * 獲取用戶發布的物品列表
- */
 exports.getUserItems = async (req, res) => {
   try {
-    const userId = req.id; // 從認證中獲取用戶ID
+    const userId = req.id;
     const { status, page, limit } = req.query;
 
     // 獲取用戶物品列表
@@ -31,12 +28,9 @@ exports.getUserItems = async (req, res) => {
   }
 };
 
-/**
- * 獲取用戶發布的食物列表
- */
 exports.getUserFoods = async (req, res) => {
   try {
-    const userId = req.id; // 從認證中獲取用戶ID
+    const userId = req.id;
     const { status, page, limit } = req.query;
 
     // 獲取用戶食物列表
