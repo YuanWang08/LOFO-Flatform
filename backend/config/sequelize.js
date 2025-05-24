@@ -1,4 +1,3 @@
-// config/sequelize.js
 const { Sequelize } = require("sequelize");
 
 const usersModel = require("../models/users.model");
