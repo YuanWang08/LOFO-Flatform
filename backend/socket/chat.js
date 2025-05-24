@@ -13,17 +13,14 @@ function socketHandler(io) {
         return next(new Error("身份驗證失敗"));
       }
 
-      // 驗證token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // 檢查必要的數據
       if (!decoded.sub && !decoded.user_id) {
         return next(new Error("無效的身份認證"));
       }
 
       const userId = decoded.sub || decoded.user_id;
 
-      // 從資料庫取得用戶信息
       const user = await models.users.findOne({
         where: { user_id: userId },
       });
@@ -32,7 +29,6 @@ function socketHandler(io) {
         return next(new Error("用戶不存在"));
       }
 
-      // 將用戶信息存儲在socket對象中
       socket.user = {
         user_id: user.user_id,
         username: user.nickname || user.username,
@@ -51,10 +47,9 @@ function socketHandler(io) {
     );
 
     // 將用戶加入以自己ID為名的房間，用於私人訊息
-    socket.join(socket.user.user_id); // 用戶加入聊天室
+    socket.join(socket.user.user_id);
     socket.on("join-chatroom", async (chatroomId) => {
       try {
-        // 檢查用戶是否是聊天室的參與者
         const isParticipant = await models.chatroom_participants.findOne({
           where: {
             chatroom_id: chatroomId,
@@ -67,7 +62,6 @@ function socketHandler(io) {
           return;
         }
 
-        // 加入特定聊天室的房間
         socket.join(`chatroom:${chatroomId}`);
         console.log(`用戶 ${socket.user.username} 加入聊天室 ${chatroomId}`);
       } catch (error) {
@@ -76,18 +70,15 @@ function socketHandler(io) {
       }
     });
 
-    // 離開聊天室
     socket.on("leave-chatroom", (chatroomId) => {
       socket.leave(`chatroom:${chatroomId}`);
       console.log(`用戶 ${socket.user.username} 離開聊天室 ${chatroomId}`);
     });
 
-    // 發送聊天訊息
     socket.on("send-message", async (data) => {
       try {
         const { chatroom_id, content } = data;
 
-        // 檢查用戶是否是聊天室的參與者
         const isParticipant = await models.chatroom_participants.findOne({
           where: {
             chatroom_id,
@@ -100,12 +91,11 @@ function socketHandler(io) {
           return;
         }
 
-        // 檢查聊天室是否已關閉
         const chatroom = await models.chatrooms.findByPk(chatroom_id);
         if (chatroom.status === "closed") {
           socket.emit("error", { message: "此聊天室已關閉" });
           return;
-        } // 儲存訊息到資料庫
+        }
         const newMessage = await models.messages.create({
           chatroom_id,
           sender_id: socket.user.user_id,
@@ -124,10 +114,8 @@ function socketHandler(io) {
           ],
         });
 
-        // 廣播訊息給聊天室所有參與者
         io.to(`chatroom:${chatroom_id}`).emit("new-message", messageWithSender);
 
-        // 通知聊天室的其他參與者
         const participants = await models.chatroom_participants.findAll({
           where: {
             chatroom_id,
@@ -135,7 +123,6 @@ function socketHandler(io) {
           },
         });
 
-        // 獲取聊天室資訊
         const chatroomInfo = {
           chatroom_id,
           event_type: chatroom.event_type,
@@ -148,7 +135,6 @@ function socketHandler(io) {
           },
         };
 
-        // 向其他參與者發送通知
         participants.forEach((participant) => {
           socket.to(participant.user_id).emit("chatroom-update", chatroomInfo);
         });
@@ -168,7 +154,6 @@ function socketHandler(io) {
           return;
         }
 
-        // 檢查接收者是否存在
         const receiverExists = await sequelize.models.users.findOne({
           where: { user_id: receiverId },
         });
@@ -178,7 +163,6 @@ function socketHandler(io) {
           return;
         }
 
-        // 儲存訊息到MongoDB
         const newMessage = new Message({
           senderId: socket.user.user_id,
           receiverId,
@@ -188,7 +172,6 @@ function socketHandler(io) {
 
         await newMessage.save();
 
-        // 準備發送的訊息格式
         const messageData = {
           _id: newMessage._id,
           senderId: socket.user.user_id,
@@ -198,10 +181,7 @@ function socketHandler(io) {
           timestamp: newMessage.timestamp,
         };
 
-        // 發送訊息給接收者（如果在線）
         socket.to(receiverId).emit("private-message", messageData);
-
-        // 向發送者確認訊息已送達系統
         socket.emit("message-sent", messageData);
       } catch (error) {
         console.error("發送私人訊息錯誤:", error);
@@ -227,7 +207,6 @@ function socketHandler(io) {
       });
     });
 
-    // 用戶離線
     socket.on("disconnect", () => {
       console.log(
         `用戶離線: ${socket.user.username}, ID: ${socket.user.user_id}`
