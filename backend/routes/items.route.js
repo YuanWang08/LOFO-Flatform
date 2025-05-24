@@ -4,7 +4,7 @@ const authMid = require("../middlewares/auth.mid");
 const uploadMid = require("../middlewares/upload.mid");
 const itemCtrl = require("../controllers/itemController");
 
-// POST /api/items/upload - 上傳物品圖片
+// 上傳物品圖片
 router.post(
   "/upload",
   authMid.authRequired(),
@@ -13,7 +13,7 @@ router.post(
   itemCtrl.uploadItemImage
 );
 
-// POST /api/items - 建立新物品
+// 建立新物品
 router.post(
   "/",
   authMid.authRequired(),
@@ -22,19 +22,17 @@ router.post(
   itemCtrl.createItem
 );
 
-// GET /api/items - 取得所有物品列表
+// 取得所有物品列表
 router.get("/", itemCtrl.getAllItems);
 
-// GET /api/items/:id - 取得單一物品詳情
+// 取得單一物品詳情
 router.get("/:id", itemCtrl.getItemById);
 
-// PUT /api/items/:id/claim - 認領物品
+// 認領物品
 router.post("/:id/claim", authMid.authRequired(), itemCtrl.claimItem);
 
-// PUT /api/items/:id - 更新物品資訊
 router.put("/:id", authMid.authRequired(), itemCtrl.updateItem);
 
-// GET /api/items/:id/similar - 獲取相似物品
 router.get("/:id/similar", itemCtrl.getSimilarItems);
 
 module.exports = router;
