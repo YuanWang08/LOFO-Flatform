@@ -1,4 +1,3 @@
-//chatrooms.model.js
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
@@ -25,8 +24,8 @@ module.exports = (sequelize) => {
       },
     },
     {
-      timestamps: true, // 啟用時間戳記
-      paranoid: true, // 啟用軟刪除
+      timestamps: true,
+      paranoid: true,
       tableName: "chatrooms",
     }
   );
