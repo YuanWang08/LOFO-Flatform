@@ -33,7 +33,7 @@ const googleOAuth = {
   userinfo_endpoint: "https://www.googleapis.com/oauth2/v3/userinfo",
 };
 
-// 原有 Portal OAuth 中間件
+// Portal OAuth 中間件
 exports.oauth = async (req, res, next) => {
   const { code } = req.query;
   const options = {
@@ -154,7 +154,7 @@ exports.fakeAuth = async (req, res, next) => {
   return next();
 };
 
-// 新增 Google OAuth 中間件
+// Google OAuth 中間件
 exports.googleOauth = async (req, res, next) => {
   const { code } = req.query;
 
@@ -163,7 +163,6 @@ exports.googleOauth = async (req, res, next) => {
   }
 
   try {
-    // 透過 code 交換 token
     const tokenResponse = await axios.post(
       googleOAuth.token_endpoint,
       {
@@ -184,7 +183,6 @@ exports.googleOauth = async (req, res, next) => {
       throw new Error("Failed to obtain access token from Google");
     }
 
-    // 使用 token 獲取用戶資訊
     const userInfoResponse = await axios.get(googleOAuth.userinfo_endpoint, {
       headers: {
         Authorization: `Bearer ${tokenResponse.data.access_token}`,
@@ -195,7 +193,6 @@ exports.googleOauth = async (req, res, next) => {
       throw new Error("Failed to fetch user info from Google");
     }
 
-    // 準備用戶資訊以供下一個中間件使用
     req.authInfo = {
       identifier: userInfoResponse.data.email,
       provider: "google",
