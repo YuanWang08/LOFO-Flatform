@@ -34,16 +34,13 @@ exports.uploadFoodImage = async (req, res) => {
 // 創建新的食物分享
 exports.createFood = async (req, res) => {
   try {
-    // 從認證中獲取用戶ID
     const userId = req.id;
 
-    // 準備payload，添加用戶ID作為創建者
     const payload = {
       ...req.body,
       created_by: userId,
     };
 
-    // 檢查必要的欄位
     const requiredFields = [
       "title",
       "category",
@@ -67,7 +64,6 @@ exports.createFood = async (req, res) => {
 
     // 處理上傳的圖片
     if (req.file) {
-      // 儲存相對路徑，方便前端訪問
       const relativePath = `/uploads/food/${path.basename(req.file.path)}`;
       payload.image_url = relativePath;
     }
@@ -93,10 +89,8 @@ exports.createFood = async (req, res) => {
 // 獲取所有食物，支持分頁和篩選
 exports.getAllFoods = async (req, res) => {
   try {
-    // 從查詢參數獲取篩選條件
     const { category, status, keyword, page, limit } = req.query;
 
-    // 獲取食物列表
     const result = await FoodCrud.getAllFoods({
       category,
       status,
@@ -182,7 +176,6 @@ exports.getFoodPublicInfo = async (req, res) => {
       message: "獲取食物公開資訊成功",
       data: {
         reservedQuantity,
-        // 可以添加其他公開資訊
       },
     });
   } catch (error) {
@@ -201,7 +194,6 @@ exports.updateFood = async (req, res) => {
     const { id } = req.params;
     const userId = req.id;
 
-    // 檢查是否是食物的擁有者
     const food = await FoodCrud.getFoodById(id);
     if (!food) {
       return res.status(404).json({
@@ -241,7 +233,6 @@ exports.withdrawFood = async (req, res) => {
     const { id } = req.params;
     const userId = req.id;
 
-    // 檢查是否是食物的擁有者
     const food = await FoodCrud.getFoodById(id);
     if (!food) {
       return res.status(404).json({
