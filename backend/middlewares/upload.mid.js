@@ -2,13 +2,12 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// 創建一個根據請求路徑確定存儲位置的通用函數
+// 根據請求路徑確定存儲位置的通用函數
 const createStorage = (folderName) => {
   return multer.diskStorage({
     destination: function (req, file, cb) {
       const uploadPath = path.join(__dirname, `../uploads/${folderName}`);
 
-      // 確保上傳目錄存在
       if (!fs.existsSync(uploadPath)) {
         fs.mkdirSync(uploadPath, { recursive: true });
       }
@@ -48,7 +47,7 @@ const foodUpload = multer({
   storage: createStorage("food"),
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 限制上傳大小為 5MB
+    fileSize: 5 * 1024 * 1024,
   },
 });
 
@@ -57,7 +56,7 @@ const avatarUpload = multer({
   storage: createStorage("avatar"),
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 限制上傳大小為 5MB
+    fileSize: 5 * 1024 * 1024,
   },
 });
 
@@ -81,7 +80,6 @@ exports.handleUploadError = (err, req, res, next) => {
       message: "檔案上傳錯誤: " + err.message,
     });
   } else if (err) {
-    // 其他錯誤
     return res.status(400).json({
       success: false,
       message: err.message,
