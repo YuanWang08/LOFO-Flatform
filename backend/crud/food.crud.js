@@ -27,17 +27,15 @@ exports.getAllFoods = async (query = {}) => {
     // 建立查詢條件
     const where = {};
 
-    // 如果提供了類別，加入查詢條件
     if (category) {
       where.category = category;
     }
 
-    // 如果提供了狀態(active/claimed/expired/withdrawn)，加入查詢條件
+    // active/claimed/expired/withdrawn
     if (status) {
       where.status = status;
     }
 
-    // 如果提供了關鍵字，搜尋標題和描述欄位
     if (keyword) {
       where[sequelize.Op.or] = [
         { title: { [sequelize.Op.iLike]: `%${keyword}%` } },
@@ -45,10 +43,8 @@ exports.getAllFoods = async (query = {}) => {
       ];
     }
 
-    // 計算分頁
     const offset = (page - 1) * limit;
 
-    // 執行查詢
     const { count, rows } = await Food.findAndCountAll({
       where,
       include: [
@@ -63,7 +59,6 @@ exports.getAllFoods = async (query = {}) => {
       offset,
     });
 
-    // 返回結果
     return {
       foods: rows,
       pagination: {
@@ -110,7 +105,7 @@ exports.incrementViewCount = async (foodId) => {
     }
   } catch (error) {
     console.error("增加瀏覽次數失敗:", error);
-    // 不拋出錯誤，僅記錄即可
+    // 不拋出錯誤，僅記錄
   }
 };
 
@@ -143,7 +138,7 @@ exports.updateFood = async (foodId, updateData) => {
     });
 
     if (Object.keys(filteredData).length === 0) {
-      return food; // 如果沒有可更新的欄位，直接返回原始資料
+      return food;
     }
 
     await food.update(filteredData);
@@ -172,11 +167,9 @@ exports.updateFoodStatus = async (foodId, status) => {
 
 exports.reserveFood = async (foodId, userId, quantity) => {
   try {
-    // 開始事務
     const transaction = await sequelize.transaction();
 
     try {
-      // 檢查食物是否存在且狀態為 active
       const food = await Food.findByPk(foodId, { transaction });
       if (!food) {
         throw new Error("食物不存在");
@@ -186,7 +179,6 @@ exports.reserveFood = async (foodId, userId, quantity) => {
         throw new Error("食物狀態不允許預約");
       }
 
-      // 檢查預約數量是否超過可用數量
       if (quantity > food.quantity) {
         throw new Error("預約數量超過可用數量");
       }
@@ -201,11 +193,10 @@ exports.reserveFood = async (foodId, userId, quantity) => {
       });
 
       if (existingReservation) {
-        // 更新現有預約
         await existingReservation.update(
           {
             quantity,
-            status: "pending", // 重設狀態為等待中
+            status: "pending",
           },
           { transaction }
         );
@@ -220,17 +211,15 @@ exports.reserveFood = async (foodId, userId, quantity) => {
           food_id: foodId,
           user_id: userId,
           quantity,
-          status: "pending", // 預設為等待中
+          status: "pending",
         },
         { transaction }
       );
 
-      // 提交事務
       await transaction.commit();
 
       return { food, reservation };
     } catch (error) {
-      // 回滾事務
       await transaction.rollback();
       throw error;
     }
@@ -263,11 +252,9 @@ exports.getFoodReservations = async (foodId) => {
 
 exports.handleReservation = async (foodId, reservationId, status) => {
   try {
-    // 開始事務
     const transaction = await sequelize.transaction();
 
     try {
-      // 檢查預約是否存在且屬於該食物
       const reservation = await Reservation.findOne({
         where: {
           reservation_id: reservationId,
@@ -280,32 +267,26 @@ exports.handleReservation = async (foodId, reservationId, status) => {
         throw new Error("預約不存在或不屬於該食物");
       }
 
-      // 更新預約狀態
       await reservation.update({ status }, { transaction });
 
-      // 如果接受預約，則更新食物數量和狀態
       if (status === "accepted") {
         const food = await Food.findByPk(foodId, { transaction });
 
-        // 減少可用數量
         const newQuantity = food.quantity - reservation.quantity;
 
-        // 更新食物
         await food.update(
           {
-            quantity: Math.max(0, newQuantity), // 確保數量不會小於0
+            quantity: Math.max(0, newQuantity),
             status: newQuantity <= 0 ? "claimed" : "active", // 如果數量為0，設置狀態為已認領
           },
           { transaction }
         );
       }
 
-      // 提交事務
       await transaction.commit();
 
       return { reservation };
     } catch (error) {
-      // 回滾事務
       await transaction.rollback();
       throw error;
     }
@@ -321,7 +302,6 @@ exports.markAsSelfPickedUp = async (foodId, userId) => {
     const transaction = await sequelize.transaction();
 
     try {
-      // 更新食物狀態為已認領
       const updatedFood = await Food.update(
         {
           status: "claimed",
@@ -338,12 +318,11 @@ exports.markAsSelfPickedUp = async (foodId, userId) => {
         {
           food_id: foodId,
           claimed_by: userId,
-          status: "accepted", // 直接設置為已接受，因為是自取方式
+          status: "accepted",
         },
         { transaction }
       );
 
-      // 提交事務
       await transaction.commit();
 
       return {
@@ -351,7 +330,6 @@ exports.markAsSelfPickedUp = async (foodId, userId) => {
         claim: foodClaim,
       };
     } catch (error) {
-      // 回滾事務
       await transaction.rollback();
       throw error;
     }
@@ -372,7 +350,7 @@ exports.getSimilarFoods = async (foodId) => {
     const similarFoods = await Food.findAll({
       where: {
         category: food.category,
-        food_id: { [Op.ne]: foodId }, // 使用正確的 Op 寫法
+        food_id: { [Op.ne]: foodId },
       },
       limit: 3,
       order: [["createdAt", "DESC"]],
