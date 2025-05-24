@@ -1,4 +1,3 @@
-// messagesController.js
 const db = require("../config/sequelize");
 const { Op } = require("sequelize");
 const { v4: uuidv4 } = require("uuid");
@@ -10,7 +9,6 @@ const getChatroomMessages = async (req, res) => {
     const { chatroom_id } = req.params;
     const { page = 1, limit = 50 } = req.query;
 
-    // 檢查用戶是否為聊天室參與者
     const isParticipant = await db.chatroom_participants.findOne({
       where: {
         chatroom_id,
@@ -70,7 +68,6 @@ const sendMessage = async (req, res) => {
     const { chatroom_id } = req.params;
     const { content } = req.body;
 
-    // 檢查用戶是否為聊天室參與者
     const isParticipant = await db.chatroom_participants.findOne({
       where: {
         chatroom_id,
@@ -85,7 +82,6 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    // 檢查聊天室是否關閉
     const chatroom = await db.chatrooms.findByPk(chatroom_id);
     if (chatroom.status === "closed") {
       return res.status(400).json({
@@ -113,13 +109,10 @@ const sendMessage = async (req, res) => {
       ],
     });
 
-    // 使用 Socket.IO 進行實時通知
     const io = req.app.get("io");
     if (io) {
-      // 向聊天室所有成員廣播新訊息
       io.to(`chatroom:${chatroom_id}`).emit("new-message", messageWithSender);
 
-      // 向聊天室的其他參與者發送通知
       const participants = await db.chatroom_participants.findAll({
         where: {
           chatroom_id,
@@ -127,7 +120,6 @@ const sendMessage = async (req, res) => {
         },
       });
 
-      // 聊天室更新訊息
       const chatroomInfo = {
         chatroom_id,
         event_type: chatroom.event_type,
@@ -139,7 +131,6 @@ const sendMessage = async (req, res) => {
         },
       };
 
-      // 向其他參與者發送更新通知
       participants.forEach((participant) => {
         io.to(participant.user_id).emit("chatroom-update", chatroomInfo);
       });
@@ -166,7 +157,6 @@ const deleteMessage = async (req, res) => {
     const { user_id } = req.user;
     const { message_id } = req.params;
 
-    // 查找訊息並檢查權限
     const message = await db.messages.findByPk(message_id);
 
     if (!message) {
