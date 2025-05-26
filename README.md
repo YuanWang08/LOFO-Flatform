@@ -1,5 +1,7 @@
 # LOFO - 遺失物與食物資訊分享平台
 
+![地圖](https://github.com/YuanWang08/LOFO-Flatform/blob/main/img/image.png?raw=true)
+
 ## 如何啟動這個專案？
 
 - 你可以下載或是 clone 此專案
